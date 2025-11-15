@@ -1,4 +1,4 @@
-// FILE: src/components/Home.tsx
+// src/components/Home.tsx
 import { useMemo, lazy, Suspense, useState, useEffect } from 'react'
 import { useCatalog, setCachedCatalog } from '../core/hooks/useCatalog'
 import { useCart } from '../core/store/cart'
@@ -24,8 +24,8 @@ function HomeContent() {
       setCachedCatalog(data)
       
       const criticalImages: string[] = []
-      if (data.layout.logo) criticalImages.push(optimizeUrl(data.layout.logo, { width: 257, height: 64, quality: 90 }))
-      if (data.layout.banners[0]?.url) criticalImages.push(optimizeUrl(data.layout.banners[0].url, { width: 1248, height: 390, quality: 85 }))
+      if (data.layout.logo) criticalImages.push(data.layout.logo)
+      if (data.layout.banners[0]?.url) criticalImages.push(data.layout.banners[0].url)
       
       preloadCriticalImages(criticalImages)
     }

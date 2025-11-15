@@ -1,4 +1,4 @@
-// FILE: src/shared/components/Header.tsx
+// src/shared/components/Header.tsx
 import { useEffect } from 'react'
 import { ShoppingCart } from 'lucide-react'
 import { useCart } from '../../core/store/cart'
@@ -9,12 +9,12 @@ export default function Header() {
   const { count, toggle } = useCart()
   const { data } = useCatalog()
   
-  const logo = data?.layout.logo || '/assets/images/logo-rocha-brindes.png'
-  const logoUrl = optimizeUrl(logo, { width: 257, height: 64, quality: 90 })
+  const logoId = data?.layout.logo
+  const logoUrl = logoId ? optimizeUrl(logoId, 'public') : '/assets/images/logo-rocha-brindes.png'
 
   useEffect(() => {
-    if (logoUrl) preloadImage(logoUrl, 'high')
-  }, [logoUrl])
+    if (logoId) preloadImage(logoId, 'high')
+  }, [logoId])
 
   return (
     <header className="sticky top-0 z-40 bg-white shadow-md border-b border-gray-100">

@@ -1,8 +1,8 @@
-// src/components/admin/LayoutManager.tsx
+// src/features/catalog/components/admin/LayoutManager.tsx
 import { useState, useEffect } from 'react'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { db, storage } from '../../../../core/lib/firebase'
+import { uploadToCloudflare } from '../../../../core/lib/cloudflare'
+import { db } from '../../../../core/lib/firebase'
 import { optimizeUrl } from '../../../../shared/utils/image'
 import { Upload, X } from 'lucide-react'
 
@@ -31,12 +31,6 @@ export default function LayoutManager() {
     void loadAssets()
   }, [])
 
-  async function uploadAsset(file: File, path: string): Promise<string> {
-    const storageRef = ref(storage, path)
-    await uploadBytes(storageRef, file)
-    return getDownloadURL(storageRef)
-  }
-
   const loadAssets = async () => {
     try {
       const docSnap = await getDoc(doc(db, 'config', 'layout'))
@@ -56,15 +50,11 @@ export default function LayoutManager() {
   const handleLogoUpload = async (file: File) => {
     setLoading(true)
     try {
-      const uploaded = await uploadAsset(
-        file,
-        `assets/layout/logo/${Date.now()}.jpg`,
-      )
-      const url = optimizeUrl(uploaded)
+      const imageId = await uploadToCloudflare(file)
 
-      const newAssets: LayoutAssets = { ...assets, logo: url }
+      const newAssets: LayoutAssets = { ...assets, logo: imageId }
       setAssets(newAssets)
-      setLogoPreview(url)
+      setLogoPreview(optimizeUrl(imageId, 'public'))
       await saveAssets(newAssets)
       setMessage('Logo atualizado com sucesso!')
     } catch (error) {
@@ -78,19 +68,15 @@ export default function LayoutManager() {
   const handleBannerUpload = async (files: FileList) => {
     setLoading(true)
     try {
-      const urls: string[] = []
+      const imageIds: string[] = []
       for (let i = 0; i < files.length; i++) {
-        const uploaded = await uploadAsset(
-          files[i],
-          `assets/layout/banners/${Date.now()}_${i}.jpg`,
-        )
-        const url = optimizeUrl(uploaded)
-        urls.push(url)
+        const imageId = await uploadToCloudflare(files[i])
+        imageIds.push(imageId)
       }
-      const newBanners = [...assets.banners, ...urls]
+      const newBanners = [...assets.banners, ...imageIds]
       const newAssets: LayoutAssets = { ...assets, banners: newBanners }
       setAssets(newAssets)
-      setBannerPreviews(newBanners)
+      setBannerPreviews(newBanners.map(id => optimizeUrl(id, 'public')))
       await saveAssets(newAssets)
       setMessage('Banners adicionados com sucesso!')
     } catch (error) {
@@ -104,19 +90,15 @@ export default function LayoutManager() {
   const handlePromotionUpload = async (files: FileList) => {
     setLoading(true)
     try {
-      const urls: string[] = []
+      const imageIds: string[] = []
       for (let i = 0; i < files.length; i++) {
-        const uploaded = await uploadAsset(
-          files[i],
-          `assets/layout/promotions/${Date.now()}_${i}.jpg`,
-        )
-        const url = optimizeUrl(uploaded)
-        urls.push(url)
+        const imageId = await uploadToCloudflare(files[i])
+        imageIds.push(imageId)
       }
-      const newPromotions = [...assets.promotions, ...urls]
+      const newPromotions = [...assets.promotions, ...imageIds]
       const newAssets: LayoutAssets = { ...assets, promotions: newPromotions }
       setAssets(newAssets)
-      setPromotionPreviews(newPromotions)
+      setPromotionPreviews(newPromotions.map(id => optimizeUrl(id, 'public')))
       await saveAssets(newAssets)
       setMessage('Promoções adicionadas com sucesso!')
     } catch (error) {
@@ -130,19 +112,15 @@ export default function LayoutManager() {
   const handlePopupUpload = async (files: FileList) => {
     setLoading(true)
     try {
-      const urls: string[] = []
+      const imageIds: string[] = []
       for (let i = 0; i < files.length; i++) {
-        const uploaded = await uploadAsset(
-          files[i],
-          `assets/layout/popups/${Date.now()}_${i}.jpg`,
-        )
-        const url = optimizeUrl(uploaded)
-        urls.push(url)
+        const imageId = await uploadToCloudflare(files[i])
+        imageIds.push(imageId)
       }
-      const newPopups = [...assets.popups, ...urls]
+      const newPopups = [...assets.popups, ...imageIds]
       const newAssets: LayoutAssets = { ...assets, popups: newPopups }
       setAssets(newAssets)
-      setPopupPreviews(newPopups)
+      setPopupPreviews(newPopups.map(id => optimizeUrl(id, 'public')))
       await saveAssets(newAssets)
       setMessage('Popups adicionados com sucesso!')
     } catch (error) {
@@ -157,7 +135,7 @@ export default function LayoutManager() {
     const newBanners = assets.banners.filter((_, i) => i !== index)
     const newAssets: LayoutAssets = { ...assets, banners: newBanners }
     setAssets(newAssets)
-    setBannerPreviews(newBanners)
+    setBannerPreviews(newBanners.map(id => optimizeUrl(id, 'public')))
     await saveAssets(newAssets)
   }
 
@@ -165,7 +143,7 @@ export default function LayoutManager() {
     const newPromotions = assets.promotions.filter((_, i) => i !== index)
     const newAssets: LayoutAssets = { ...assets, promotions: newPromotions }
     setAssets(newAssets)
-    setPromotionPreviews(newPromotions)
+    setPromotionPreviews(newPromotions.map(id => optimizeUrl(id, 'public')))
     await saveAssets(newAssets)
   }
 
@@ -173,7 +151,7 @@ export default function LayoutManager() {
     const newPopups = assets.popups.filter((_, i) => i !== index)
     const newAssets: LayoutAssets = { ...assets, popups: newPopups }
     setAssets(newAssets)
-    setPopupPreviews(newPopups)
+    setPopupPreviews(newPopups.map(id => optimizeUrl(id, 'public')))
     await saveAssets(newAssets)
   }
 

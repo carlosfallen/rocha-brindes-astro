@@ -1,6 +1,7 @@
+// src/features/catalog/components/ProductModal.tsx (atualizar renderização de imagens)
 import { useState, useMemo, memo } from 'react'
 import { X, ShoppingCart } from 'lucide-react'
-import Image from '../../../shared/components/Image'
+import { optimizeUrl } from '../../../shared/utils/image'
 import { useCart } from '../../../core/store/cart'
 import type { Product, ProductVariation } from '../../../types/product'
 
@@ -14,6 +15,7 @@ interface GalleryItem {
   url: string
   variation?: ProductVariation
 }
+
 export default memo(function ProductModal({ product, onClose }: Props) {
   const { add } = useCart()
 
@@ -21,20 +23,20 @@ export default memo(function ProductModal({ product, onClose }: Props) {
     const items: GalleryItem[] = []
 
     if (product.imagem_url) {
-      items.push({ label: 'Principal', url: product.imagem_url })
+      items.push({ label: 'Principal', url: optimizeUrl(product.imagem_url, 'public') })
     }
 
     if (product.variacoes?.length) {
       product.variacoes.forEach(v => {
         if (v.imagem_url) {
-          items.push({ label: v.cor, url: v.imagem_url, variation: v })
+          items.push({ label: v.cor, url: optimizeUrl(v.imagem_url, 'public'), variation: v })
         }
       })
     }
 
     if (!items.length && product.imagens_urls?.length) {
       product.imagens_urls.forEach((url, i) => {
-        items.push({ label: i === 0 ? 'Imagem' : `Imagem ${i + 1}`, url })
+        items.push({ label: i === 0 ? 'Imagem' : `Imagem ${i + 1}`, url: optimizeUrl(url, 'public') })
       })
     }
 
@@ -64,12 +66,11 @@ export default memo(function ProductModal({ product, onClose }: Props) {
           <div className="bg-gray-50 flex flex-col">
             <div className="flex-1 flex items-center justify-center p-4">
               {active && (
-                <Image
+                <img
                   src={active.url}
                   alt={`${product.nome} - ${active.label}`}
-                  width={800}
-                  priority
                   className="max-h-[340px] md:max-h-[560px] w-auto object-contain"
+                  loading="eager"
                 />
               )}
             </div>
@@ -88,7 +89,7 @@ export default memo(function ProductModal({ product, onClose }: Props) {
                     }`}
                     title={item.label}
                   >
-                    <Image src={item.url} alt={item.label} width={64} className="w-full h-full object-cover" />
+                    <img src={optimizeUrl(item.url, 'thumbnail')} alt={item.label} className="w-full h-full object-cover" loading="lazy" />
                     {item.variation && (
                       <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-[10px] text-white px-1 py-0.5 text-center truncate">
                         {item.variation.cor}

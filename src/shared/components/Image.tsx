@@ -1,4 +1,4 @@
-// FILE: src/shared/components/Image.tsx
+// src/shared/components/Image.tsx
 import { memo, useState } from 'react'
 import { optimizeUrl } from '../../shared/utils/image'
 
@@ -15,7 +15,14 @@ interface Props {
 export default memo(function Image({ src, alt, width = 400, height, className = '', priority = false, onLoad }: Props) {
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
-  const url = optimizeUrl(src, { width, height, quality: priority ? 85 : 75 })
+  
+  // Determina a variante baseada no tamanho
+  let variant: 'public' | 'thumbnail' | 'original' = 'public'
+  if (width && width <= 200) {
+    variant = 'thumbnail'
+  }
+  
+  const url = optimizeUrl(src, variant)
 
   if (error) {
     return (

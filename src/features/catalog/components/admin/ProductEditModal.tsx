@@ -4,7 +4,7 @@ import { doc, updateDoc } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { db, storage } from '../../../../core/lib/firebase'
 import { useCategories } from '../../../../core/hooks/useCategories'
-import { optimizeUrl } from '../../../../shared/utils/image'
+import { uploadToCloudflare } from '../../../../core/lib/cloudflare'
 import { X, Upload } from 'lucide-react'
 import type { Product, ProductVariation } from '../../../../types/product'
 
@@ -68,67 +68,57 @@ export default function ProductEditModal({ product, onClose }: Props) {
   return await getDownloadURL(storageRef)
 }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setMessage('')
+// src/features/catalog/components/admin/ProductEditModal.tsx (somente handleSubmit)
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setLoading(true)
+  setMessage('')
 
-    try {
-      const timestamp = Date.now()
-      let mainOriginalUrl = product.imagem_url
-      let mainThumbUrl = product.thumb_url
+  try {
+    let mainImageId = product.imagem_url
 
-      if (mainImage) {
-        const mainBasePath = `products/${product.id}/main/${timestamp}`
-        mainOriginalUrl = await uploadOriginal(mainImage, `${mainBasePath}_orig`)
-        const uploadedMain = await uploadFile(mainImage, mainBasePath)
-        mainThumbUrl = optimizeUrl(uploadedMain)
-      }
+    if (mainImage) {
+      mainImageId = await uploadToCloudflare(mainImage)
+    }
 
-      const variationsData: ProductVariation[] = []
-      const allOriginals: string[] = [mainOriginalUrl || '']
-      const allThumbs: string[] = [mainThumbUrl || '']
+    const variationsData: ProductVariation[] = []
+    const allImageIds: string[] = [mainImageId]
 
-      for (const variation of variations) {
-        if (variation.image) {
-          const vTs = Date.now()
-          const basePath = `products/${product.id}/variations/${variation.cor}/${vTs}`
-          const originalUrl = await uploadOriginal(variation.image, `${basePath}_orig`)
-          const thumbUrl = optimizeUrl(originalUrl)
-          variationsData.push({ cor: variation.cor, imagem_url: originalUrl, thumb_url: thumbUrl })
-          allOriginals.push(originalUrl)
-          allThumbs.push(thumbUrl)
-        } else if (variation.existingUrl) {
-          const existing = product.variacoes?.find(v => v.cor === variation.cor)
-          if (existing) {
-            variationsData.push(existing)
-            allOriginals.push(existing.imagem_url)
-            allThumbs.push(existing.thumb_url || existing.imagem_url)
-          }
+    for (const variation of variations) {
+      if (variation.image) {
+        const imageId = await uploadToCloudflare(variation.image)
+        variationsData.push({ cor: variation.cor, imagem_url: imageId, thumb_url: imageId })
+        allImageIds.push(imageId)
+      } else if (variation.existingUrl) {
+        const existing = product.variacoes?.find(v => v.cor === variation.cor)
+        if (existing) {
+          variationsData.push(existing)
+          allImageIds.push(existing.imagem_url)
         }
       }
-
-      await updateDoc(doc(db, 'produtos', product.id), {
-        nome,
-        descricao,
-        categorias: selectedCategories,
-        destaque,
-        variacoes: variationsData,
-        imagem_url: mainOriginalUrl,
-        thumb_url: mainThumbUrl,
-        imagens_urls: allOriginals,
-        thumbs_urls: allThumbs,
-      })
-
-      setMessage('Produto atualizado com sucesso!')
-      setTimeout(() => onClose(), 1500)
-    } catch (err) {
-      console.error(err)
-      setMessage(err instanceof Error ? err.message : 'Erro ao atualizar produto')
-    } finally {
-      setLoading(false)
     }
+
+    await updateDoc(doc(db, 'produtos', product.id), {
+      nome,
+      descricao,
+      categorias: selectedCategories,
+      destaque,
+      variacoes: variationsData,
+      imagem_url: mainImageId,
+      thumb_url: mainImageId,
+      imagens_urls: allImageIds,
+      thumbs_urls: allImageIds,
+    })
+
+    setMessage('Produto atualizado com sucesso!')
+    setTimeout(() => onClose(), 1500)
+  } catch (err) {
+    console.error(err)
+    setMessage(err instanceof Error ? err.message : 'Erro ao atualizar produto')
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">

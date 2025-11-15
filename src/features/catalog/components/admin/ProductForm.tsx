@@ -4,7 +4,7 @@ import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { db, storage } from '../../../../core/lib/firebase'
 import { useCategories } from '../../../../core/hooks/useCategories'
-import { optimizeUrl } from '../../../../shared/utils/image'
+import { uploadToCloudflare } from '../../../../core/lib/cloudflare'
 import { X, Upload } from 'lucide-react'
 import type { ProductVariation } from '../../../../types/product'
 
@@ -67,94 +67,63 @@ export default function ProductForm() {
     return getDownloadURL(storageRef)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setMessage('')
+// src/features/catalog/components/admin/ProductForm.tsx (somente handleSubmit)
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setLoading(true)
+  setMessage('')
 
-    try {
-      if (!mainImage) throw new Error('Selecione a imagem principal')
-      if (!sku.trim()) throw new Error('Informe um código/SKU')
+  try {
+    if (!mainImage) throw new Error('Selecione a imagem principal')
+    if (!sku.trim()) throw new Error('Informe um código/SKU')
 
-      const timestamp = Date.now()
+    const mainImageId = await uploadToCloudflare(mainImage)
+    const allImageIds: string[] = [mainImageId]
 
-      // 👉 Principal: original + thumb
-      const mainBasePath = `products/${sku}/main/${timestamp}`
+    const variationsData: ProductVariation[] = []
 
-      const mainOriginalUrl = await uploadOriginal(
-        mainImage,
-        `${mainBasePath}_orig`
-      )
+    for (const variation of variations) {
+      if (!variation.image) continue
 
-const mainThumbUrl = optimizeUrl(mainOriginalUrl)
-
-
-      const variationsData: ProductVariation[] = []
-      const allOriginals: string[] = [mainOriginalUrl]
-      const allThumbs: string[] = [mainThumbUrl]
-
-      for (const variation of variations) {
-        if (!variation.image) continue
-
-        const vTs = Date.now()
-        const basePath = `products/${sku}/variations/${variation.cor}/${vTs}`
-
-        const originalUrl = await uploadOriginal(
-          variation.image,
-          `${basePath}_orig`
-        )
-
-const thumbUrl = optimizeUrl(originalUrl)
-
-
-        variationsData.push({
-          cor: variation.cor,
-          imagem_url: originalUrl,
-          thumb_url: thumbUrl,
-        })
-
-        allOriginals.push(originalUrl)
-        allThumbs.push(thumbUrl)
-      }
-
-      await setDoc(doc(collection(db, 'produtos'), sku), {
-        id: sku,
-        nome,
-        descricao,
-        categorias: selectedCategories,
-        destaque,
-        variacoes: variationsData,
-
-        // imagem principal (detalhe)
-        imagem_url: mainOriginalUrl,
-        thumb_url: mainThumbUrl,
-
-        // galerias
-        imagens_urls: allOriginals,
-        thumbs_urls: allThumbs,
-
-        createdAt: serverTimestamp(),
+      const imageId = await uploadToCloudflare(variation.image)
+      variationsData.push({
+        cor: variation.cor,
+        imagem_url: imageId,
+        thumb_url: imageId,
       })
-
-      setMessage('Produto salvo com sucesso!')
-      setNome('')
-      setSku('')
-      setDescricao('')
-      setDestaque(false)
-      setSelectedCategories([])
-      setMainImage(null)
-      setMainImagePreview('')
-      setVariations([])
-    } catch (err) {
-      console.error(err)
-      setMessage(
-        err instanceof Error ? err.message : 'Erro ao salvar produto'
-      )
-    } finally {
-      setLoading(false)
+      allImageIds.push(imageId)
     }
-  }
 
+    await setDoc(doc(collection(db, 'produtos'), sku), {
+      id: sku,
+      nome,
+      descricao,
+      categorias: selectedCategories,
+      destaque,
+      variacoes: variationsData,
+      imagem_url: mainImageId,
+      thumb_url: mainImageId,
+      imagens_urls: allImageIds,
+      thumbs_urls: allImageIds,
+      createdAt: serverTimestamp(),
+    })
+
+    setMessage('Produto salvo com sucesso!')
+    setNome('')
+    setSku('')
+    setDescricao('')
+    setDestaque(false)
+    setSelectedCategories([])
+    setMainImage(null)
+    setMainImagePreview('')
+    setVariations([])
+  } catch (err) {
+    console.error(err)
+    setMessage(err instanceof Error ? err.message : 'Erro ao salvar produto')
+  } finally {
+    setLoading(false)
+  }
+}
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
       <h2 className="text-xl font-title font-bold mb-6">Adicionar Produto</h2>

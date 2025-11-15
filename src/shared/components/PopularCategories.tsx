@@ -1,6 +1,7 @@
-// FILE: src/shared/components/PopularCategories.tsx
+// src/shared/components/PopularCategories.tsx
 import { memo } from 'react'
 import Image from './Image'
+import { optimizeUrl } from '../utils/image'
 import type { Category } from '../../types/product'
 
 interface Props {
@@ -18,31 +19,35 @@ export default memo(function PopularCategories({ categories, onSelect }: Props) 
       </h2>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        {categories.map(cat => (
-          <button
-            key={cat.id}
-            onClick={() => onSelect(cat.nome)}
-            className="relative h-36 md:h-44 rounded-2xl overflow-hidden group bg-gradient-to-br from-gray-100 to-gray-200 shadow-card hover:shadow-card-hover transition-all duration-300 transform hover:-translate-y-1"
-            type="button"
-          >
-            {cat.imagePath && (
-              <Image 
-                src={cat.imagePath} 
-                alt={cat.nome} 
-                width={400} 
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-              />
-            )}
+        {categories.map(cat => {
+          const imageUrl = cat.imagePath ? optimizeUrl(cat.imagePath, 'public') : ''
+          
+          return (
+            <button
+              key={cat.id}
+              onClick={() => onSelect(cat.nome)}
+              className="relative h-36 md:h-44 rounded-2xl overflow-hidden group bg-gradient-to-br from-gray-100 to-gray-200 shadow-card hover:shadow-card-hover transition-all duration-300 transform hover:-translate-y-1"
+              type="button"
+            >
+              {imageUrl && (
+                <img
+                  src={imageUrl}
+                  alt={cat.nome} 
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  loading="lazy"
+                />
+              )}
 
-            <div className="absolute inset-0 bg-gradient-to-t from-dark/80 via-dark/40 to-transparent group-hover:from-primary/80 transition-all duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-t from-dark/80 via-dark/40 to-transparent group-hover:from-primary/80 transition-all duration-300" />
 
-            <div className="absolute inset-0 flex items-end p-4">
-              <span className="text-white font-title font-bold text-base md:text-lg drop-shadow-lg">
-                {cat.nome}
-              </span>
-            </div>
-          </button>
-        ))}
+              <div className="absolute inset-0 flex items-end p-4">
+                <span className="text-white font-title font-bold text-base md:text-lg drop-shadow-lg">
+                  {cat.nome}
+                </span>
+              </div>
+            </button>
+          )
+        })}
       </div>
     </section>
   )

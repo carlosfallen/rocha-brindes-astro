@@ -1,7 +1,8 @@
-// FILE: src/features/catalog/components/ProductCard.tsx
+// src/features/catalog/components/ProductCard.tsx
 import { memo } from 'react'
 import { ShoppingCart, Eye } from 'lucide-react'
 import Image from '../../../shared/components/Image'
+import { optimizeUrl } from '../../../shared/utils/image'
 import type { Product } from '../../../types/product'
 
 interface Props {
@@ -11,18 +12,18 @@ interface Props {
 }
 
 export default memo(function ProductCard({ product, onView, onAdd }: Props) {
-  const img = product.thumb_url || product.imagem_url || product.variacoes?.[0]?.thumb_url || product.variacoes?.[0]?.imagem_url
+  const imgId = product.thumb_url || product.imagem_url || product.variacoes?.[0]?.thumb_url || product.variacoes?.[0]?.imagem_url
+  const imgUrl = imgId ? optimizeUrl(imgId, 'thumbnail') : ''
   
   return (
     <article className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 transform hover:-translate-y-1">
       <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-        {img ? (
-          <Image 
-            src={img} 
+        {imgUrl ? (
+          <img
+            src={imgUrl}
             alt={`Produto ${product.nome}`} 
-            width={400} 
-            height={400}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            loading="lazy"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400">

@@ -1,7 +1,8 @@
-// FILE: src/shared/components/HeroBanner.tsx
+// src/shared/components/HeroBanner.tsx
 import { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Image from './Image'
+import { optimizeUrl } from '../utils/image'
 
 interface Banner {
   url: string
@@ -40,23 +41,24 @@ export default function HeroBanner({ banners }: Props) {
         </div>
       )}
       
-      {banners.map((banner, i) => (
-        <div 
-          key={banner.url} 
-          className={`absolute inset-0 transition-opacity duration-700 ${i === current ? 'opacity-100' : 'opacity-0'} ${!loaded ? 'invisible' : ''}`}
-          aria-hidden={i !== current}
-        >
-          <Image 
-            src={banner.url} 
-            alt={banner.alt || `Promoção ${i + 1}`} 
-            width={1248} 
-            height={390} 
-            priority={i === 0} 
-            className="w-full h-full object-cover"
-            onLoad={() => i === 0 && setLoaded(true)}
-          />
-        </div>
-      ))}
+      {banners.map((banner, i) => {
+        const imageUrl = optimizeUrl(banner.url, 'public')
+        return (
+          <div 
+            key={banner.url} 
+            className={`absolute inset-0 transition-opacity duration-700 ${i === current ? 'opacity-100' : 'opacity-0'} ${!loaded ? 'invisible' : ''}`}
+            aria-hidden={i !== current}
+          >
+            <img 
+              src={imageUrl}
+              alt={banner.alt || `Promoção ${i + 1}`} 
+              className="w-full h-full object-cover"
+              loading={i === 0 ? 'eager' : 'lazy'}
+              onLoad={() => i === 0 && setLoaded(true)}
+            />
+          </div>
+        )
+      })}
       
       {loaded && banners.length > 1 && (
         <>

@@ -1,8 +1,8 @@
-// FILE: src/features/cart/CartSidebar.tsx
+// src/features/cart/CartSidebar.tsx (atualizar renderização de imagens)
 import { useState } from 'react'
 import { X, Trash2, Send, ShoppingCart, Plus, Minus } from 'lucide-react'
 import { useCart } from '../../core/store/cart'
-import Image from '../../shared/components/Image'
+import { optimizeUrl } from '../../shared/utils/image'
 
 export default function CartSidebar() {
   const { items, isOpen, toggle, remove, clear, updateQuantity } = useCart()
@@ -87,23 +87,20 @@ export default function CartSidebar() {
             ) : (
               <>
                 {items.map(item => {
-                  const img =
-                    item.thumb_url ||
-                    item.imagem_url ||
-                    item.variacoes?.[0]?.thumb_url
+                  const imgId = item.thumb_url || item.imagem_url || item.variacoes?.[0]?.thumb_url
+                  const imgUrl = imgId ? optimizeUrl(imgId, 'thumbnail') : ''
 
                   return (
                     <div
                       key={item.id}
                       className="flex gap-4 bg-white p-4 rounded-xl shadow-card hover:shadow-card-hover transition-all duration-200"
                     >
-                      {img && (
-                        <Image
-                          src={img}
+                      {imgUrl && (
+                        <img
+                          src={imgUrl}
                           alt={item.nome}
-                          width={80}
-                          height={80}
                           className="w-20 h-20 object-contain rounded-lg bg-gray-50"
+                          loading="lazy"
                         />
                       )}
 
@@ -128,32 +125,32 @@ export default function CartSidebar() {
                           </div>
                         )}
 
-<div className="flex items-center gap-2">
-  <button
-    onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
-    className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
-  >
-    <Minus size={14} className="text-gray-600" />
-  </button>
-  
-  <input
-    type="number"
-    min="1"
-    value={item.quantity}
-    onChange={(e) => {
-      const val = parseInt(e.target.value) || 1
-      updateQuantity(item.id, Math.max(1, val))
-    }}
-    className="w-16 text-center px-2 py-1.5 bg-primary/10 text-primary text-sm font-bold rounded-lg border-2 border-transparent focus:border-primary focus:outline-none"
-  />
-  
-  <button
-    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-    className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
-  >
-    <Plus size={14} className="text-gray-600" />
-  </button>
-</div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                          >
+                            <Minus size={14} className="text-gray-600" />
+                          </button>
+                          
+                          <input
+                            type="number"
+                            min="1"
+                            value={item.quantity}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value) || 1
+                              updateQuantity(item.id, Math.max(1, val))
+                            }}
+                            className="w-16 text-center px-2 py-1.5 bg-primary/10 text-primary text-sm font-bold rounded-lg border-2 border-transparent focus:border-primary focus:outline-none"
+                          />
+                          
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                          >
+                            <Plus size={14} className="text-gray-600" />
+                          </button>
+                        </div>
                       </div>
 
                       <button

@@ -1,8 +1,8 @@
-// src/components/admin/CategoryManager.tsx
+// src/features/catalog/components/admin/CategoryManager.tsx
 import { useState } from 'react'
 import { doc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { db, storage } from '../../../../core/lib/firebase'
+import { uploadToCloudflare } from '../../../../core/lib/cloudflare'
+import { db } from '../../../../core/lib/firebase'
 import { useCategories } from '../../../../core/hooks/useCategories'
 import { optimizeUrl } from '../../../../shared/utils/image'
 import { Trash2, Upload, X } from 'lucide-react'
@@ -31,12 +31,6 @@ export default function CategoryManager() {
     }
   }
 
-  async function uploadAsset(file: File, path: string): Promise<string> {
-    const storageRef = ref(storage, path)
-    await uploadBytes(storageRef, file)
-    return getDownloadURL(storageRef)
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -45,12 +39,8 @@ export default function CategoryManager() {
 
       let imagePath = ''
       if (categoryImage) {
-        const uploaded = await uploadAsset(
-          categoryImage,
-          `assets/layout/categories/${id}/${Date.now()}.jpg`,
-        )
-        const imageUrl = optimizeUrl(uploaded)
-        imagePath = imageUrl
+        const imageId = await uploadToCloudflare(categoryImage)
+        imagePath = imageId
       }
 
       await setDoc(doc(db, 'categorias', id), {
@@ -99,12 +89,8 @@ export default function CategoryManager() {
 
   const updateCategoryImage = async (cat: Cat, file: File) => {
     try {
-      const uploaded = await uploadAsset(
-        file,
-        `assets/layout/categories/${cat.id}/${Date.now()}.jpg`,
-      )
-      const imageUrl = optimizeUrl(uploaded)
-      await updateDoc(doc(db, 'categorias', cat.id), { imagePath: imageUrl })
+      const imageId = await uploadToCloudflare(file)
+      await updateDoc(doc(db, 'categorias', cat.id), { imagePath: imageId })
       refetch()
     } catch (e) {
       console.error(e)
@@ -199,7 +185,7 @@ export default function CategoryManager() {
             <div className="flex items-center gap-4 flex-1">
               {cat.imagePath && (
                 <img
-                  src={cat.imagePath}
+                  src={optimizeUrl(cat.imagePath, 'public')}
                   alt={cat.nome}
                   className="w-16 h-16 object-cover rounded-lg"
                 />
