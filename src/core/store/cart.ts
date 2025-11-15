@@ -14,6 +14,7 @@ interface CartStore {
   search: string
   add: (p: Product) => void
   remove: (id: string) => void
+  updateQuantity: (id: string, quantity: number) => void
   clear: () => void
   toggle: () => void
   setCategory: (c: string) => void
@@ -42,6 +43,11 @@ export const useCart = create<CartStore>()(
       
       remove: (id) => {
         const newItems = get().items.filter(i => i.id !== id)
+        set({ items: newItems, count: newItems.reduce((sum, i) => sum + i.quantity, 0) })
+      },
+
+      updateQuantity: (id, quantity) => {
+        const newItems = get().items.map(i => i.id === id ? { ...i, quantity } : i)
         set({ items: newItems, count: newItems.reduce((sum, i) => sum + i.quantity, 0) })
       },
       

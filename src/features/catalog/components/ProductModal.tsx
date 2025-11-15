@@ -14,7 +14,6 @@ interface GalleryItem {
   url: string
   variation?: ProductVariation
 }
-
 export default memo(function ProductModal({ product, onClose }: Props) {
   const { add } = useCart()
 
@@ -46,7 +45,8 @@ export default memo(function ProductModal({ product, onClose }: Props) {
   const active = gallery[activeIndex] || gallery[0]
 
   const handleAdd = () => {
-    add(product)
+    const selectedColor = active?.variation?.cor
+    add({ ...product, cor: selectedColor })
     onClose()
   }
 
@@ -122,34 +122,34 @@ export default memo(function ProductModal({ product, onClose }: Props) {
               </div>
             )}
 
-{product.variacoes?.length ? (
-  <div className="mb-4">
-    <p className="text-xs font-semibold text-gray-500 mb-1">Cores disponíveis</p>
+            {product.variacoes?.length ? (
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-gray-500 mb-1">Cores disponíveis</p>
 
-    <div className="flex flex-wrap gap-2">
-      {product.variacoes?.map(v => {
-        const isActive = gallery[activeIndex]?.variation?.cor === v.cor
-        return (
-          <button
-            key={v.cor}
-            type="button"
-            onClick={() => {
-              const targetIndex = gallery.findIndex(g => g.variation?.cor === v.cor)
-              if (targetIndex >= 0) setActiveIndex(targetIndex)
-            }}
-            className={`px-3 py-1 rounded-full text-xs font-semibold border transition ${
-              isActive
-                ? 'bg-primary text-white border-primary'
-                : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            {v.cor}
-          </button>
-        )
-      })}
-    </div>
-  </div>
-) : null}
+                <div className="flex flex-wrap gap-2">
+                  {product.variacoes?.map(v => {
+                    const isActive = gallery[activeIndex]?.variation?.cor === v.cor
+                    return (
+                      <button
+                        key={v.cor}
+                        type="button"
+                        onClick={() => {
+                          const targetIndex = gallery.findIndex(g => g.variation?.cor === v.cor)
+                          if (targetIndex >= 0) setActiveIndex(targetIndex)
+                        }}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition ${
+                          isActive
+                            ? 'bg-primary text-white border-primary'
+                            : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {v.cor}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : null}
 
             <div className="mt-auto pt-4 flex gap-3">
               <button

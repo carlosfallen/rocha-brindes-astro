@@ -3,7 +3,7 @@ export interface Product {
   id: string
   nome: string
   descricao?: string
-  cor: string
+  cor?: string
   categorias: string[]
   imagens_urls: string[]
   thumbs_urls?: string[]
