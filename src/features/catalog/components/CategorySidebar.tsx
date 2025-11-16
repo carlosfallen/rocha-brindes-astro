@@ -53,11 +53,12 @@ export default memo(function CategorySidebar({ categories, selected, onSelect, s
       {/* Sidebar */}
       <aside className={`
         fixed lg:sticky bottom-0 lg:top-28 left-0 right-0 lg:left-auto lg:right-auto
-        h-[85vh] lg:h-fit w-full lg:w-auto bg-white z-50 lg:z-auto
+        h-[85vh] lg:h-fit w-full lg:w-auto z-50 lg:z-auto
         transform transition-transform duration-300 lg:transform-none
         ${isOpen ? 'translate-y-0' : 'translate-y-full lg:translate-y-0'}
         overflow-hidden lg:overflow-visible
         rounded-t-3xl lg:rounded-none shadow-2xl lg:shadow-none
+        bg-white lg:bg-transparent
       `}>
         {/* Header Mobile */}
         <div className="lg:hidden bg-gradient-to-r from-primary to-primary-dark text-white p-4 flex items-center justify-between">
