@@ -1,4 +1,4 @@
-// src/components/admin/AdminDashboard.tsx
+// src/features/catalog/components/admin/AdminDashboard.tsx
 import { useState } from 'react'
 import { signOut } from 'firebase/auth'
 import { auth } from '../../../../core/lib/firebase'
@@ -6,9 +6,10 @@ import ProductForm from '../../../../features/catalog/components/admin/ProductFo
 import ProductList from './ProductList'
 import CategoryManager from '../../../../features/catalog/components/admin/CategoryManager'
 import LayoutManager from '../../../../features/catalog/components/admin/LayoutManager'
+import ConfigManager from '../../../../features/catalog/components/admin/ConfigManager'
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'layout'>('products')
+  const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'layout' | 'config'>('products')
 
   const handleLogout = async () => {
     await signOut(auth)
@@ -29,10 +30,10 @@ export default function AdminDashboard() {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="flex gap-4 mb-6">
+        <div className="flex gap-4 mb-6 overflow-x-auto">
           <button
             onClick={() => setActiveTab('products')}
-            className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+            className={`px-6 py-2 rounded-lg font-semibold transition-all whitespace-nowrap ${
               activeTab === 'products'
                 ? 'bg-primary text-text-primary'
                 : 'bg-white text-gray-600 hover:bg-gray-100'
@@ -42,7 +43,7 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('categories')}
-            className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+            className={`px-6 py-2 rounded-lg font-semibold transition-all whitespace-nowrap ${
               activeTab === 'categories'
                 ? 'bg-primary text-text-primary'
                 : 'bg-white text-gray-600 hover:bg-gray-100'
@@ -52,13 +53,23 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('layout')}
-            className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+            className={`px-6 py-2 rounded-lg font-semibold transition-all whitespace-nowrap ${
               activeTab === 'layout'
                 ? 'bg-primary text-text-primary'
                 : 'bg-white text-gray-600 hover:bg-gray-100'
             }`}
           >
             Layout
+          </button>
+          <button
+            onClick={() => setActiveTab('config')}
+            className={`px-6 py-2 rounded-lg font-semibold transition-all whitespace-nowrap ${
+              activeTab === 'config'
+                ? 'bg-primary text-text-primary'
+                : 'bg-white text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            Configurações
           </button>
         </div>
 
@@ -72,6 +83,8 @@ export default function AdminDashboard() {
         {activeTab === 'categories' && <CategoryManager />}
 
         {activeTab === 'layout' && <LayoutManager />}
+
+        {activeTab === 'config' && <ConfigManager />}
       </div>
     </div>
   )

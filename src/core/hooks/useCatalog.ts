@@ -1,4 +1,4 @@
-// FILE: src/core/hooks/useCatalog.ts
+// src/core/hooks/useCatalog.ts
 import { useQuery } from '@tanstack/react-query'
 import { collection, getDocs, query, orderBy, limit, doc, getDoc } from 'firebase/firestore'
 import { db } from '../../core/lib/firebase'
@@ -33,7 +33,7 @@ export function useCatalog(productLimit = 100) {
       const layoutData = layoutDoc.exists() ? layoutDoc.data() : {}
       const layout: LayoutConfig = {
         logo: layoutData.logo || '',
-        banners: (layoutData.banners || []).map((url: string) => ({ url, alt: 'Banner Rocha Brindes' })),
+        banners: (layoutData.banners || []).map((id: string) => ({ url: id, alt: 'Banner Rocha Brindes' })),
         promotions: layoutData.promotions || [],
         popups: layoutData.popups || []
       }

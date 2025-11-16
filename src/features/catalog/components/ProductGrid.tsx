@@ -1,3 +1,4 @@
+// src/features/catalog/components/ProductGrid.tsx
 import { memo } from 'react'
 import ProductCard from './ProductCard'
 import type { Product } from '../../../types/product'

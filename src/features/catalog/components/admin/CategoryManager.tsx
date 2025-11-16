@@ -1,7 +1,7 @@
 // src/features/catalog/components/admin/CategoryManager.tsx
 import { useState } from 'react'
 import { doc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore'
-import { uploadToCloudflare } from '../../../../core/lib/cloudflare'
+import { uploadToCloudflare, deleteCloudflareImage } from '../../../../core/lib/cloudflare'
 import { db } from '../../../../core/lib/firebase'
 import { useCategories } from '../../../../core/hooks/useCategories'
 import { optimizeUrl } from '../../../../shared/utils/image'
@@ -39,7 +39,11 @@ export default function CategoryManager() {
 
       let imagePath = ''
       if (categoryImage) {
-        const imageId = await uploadToCloudflare(categoryImage)
+        const imageId = await uploadToCloudflare(categoryImage, {
+          folder: 'categorias',
+          productId: id,
+          type: 'category'
+        })
         imagePath = imageId
       }
 
@@ -64,10 +68,13 @@ export default function CategoryManager() {
     }
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (cat: Cat) => {
     if (!confirm('Tem certeza? Esta ação não pode ser desfeita.')) return
     try {
-      await deleteDoc(doc(db, 'categorias', id))
+      if (cat.imagePath) {
+        await deleteCloudflareImage(cat.imagePath)
+      }
+      await deleteDoc(doc(db, 'categorias', cat.id))
       refetch()
     } catch (error) {
       console.error(error)
@@ -89,7 +96,16 @@ export default function CategoryManager() {
 
   const updateCategoryImage = async (cat: Cat, file: File) => {
     try {
-      const imageId = await uploadToCloudflare(file)
+      const imageId = await uploadToCloudflare(file, {
+        folder: 'categorias',
+        productId: cat.id,
+        type: 'category'
+      })
+      
+      if (cat.imagePath) {
+        await deleteCloudflareImage(cat.imagePath)
+      }
+      
       await updateDoc(doc(db, 'categorias', cat.id), { imagePath: imageId })
       refetch()
     } catch (e) {
@@ -223,7 +239,7 @@ export default function CategoryManager() {
               </div>
             </div>
             <button
-              onClick={() => void handleDelete(cat.id)}
+              onClick={() => void handleDelete(cat)}
               className="p-2 text-red-600 hover:bg-red-50 rounded"
             >
               <Trash2 size={18} />

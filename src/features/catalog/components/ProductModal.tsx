@@ -1,6 +1,6 @@
-// src/features/catalog/components/ProductModal.tsx (atualizar renderização de imagens)
+// src/features/catalog/components/ProductModal.tsx
 import { useState, useMemo, memo } from 'react'
-import { X, ShoppingCart } from 'lucide-react'
+import { X, ShoppingCart, Plus, Minus } from 'lucide-react'
 import { optimizeUrl } from '../../../shared/utils/image'
 import { useCart } from '../../../core/store/cart'
 import type { Product, ProductVariation } from '../../../types/product'
@@ -13,11 +13,12 @@ interface Props {
 interface GalleryItem {
   label: string
   url: string
-  variation?: ProductVariation
+  variation?: ProductVariation 
 }
 
 export default memo(function ProductModal({ product, onClose }: Props) {
   const { add } = useCart()
+  const [quantity, setQuantity] = useState(1)
 
   const gallery = useMemo<GalleryItem[]>(() => {
     const items: GalleryItem[] = []
@@ -48,8 +49,23 @@ export default memo(function ProductModal({ product, onClose }: Props) {
 
   const handleAdd = () => {
     const selectedColor = active?.variation?.cor
-    add({ ...product, cor: selectedColor })
+    for (let i = 0; i < quantity; i++) {
+      add({ ...product, cor: selectedColor })
+    }
     onClose()
+  }
+
+  const incrementQuantity = () => {
+    setQuantity(prev => prev + 1)
+  }
+
+  const decrementQuantity = () => {
+    setQuantity(prev => Math.max(1, prev - 1))
+  }
+
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value) || 1
+    setQuantity(Math.max(1, value))
   }
 
   return (
@@ -151,6 +167,35 @@ export default memo(function ProductModal({ product, onClose }: Props) {
                 </div>
               </div>
             ) : null}
+
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-gray-500 mb-2">Quantidade</p>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={decrementQuantity}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300"
+                >
+                  <Minus size={18} className="text-gray-600" />
+                </button>
+                
+                <input
+                  type="number"
+                  min="1"
+                  value={quantity}
+                  onChange={handleQuantityChange}
+                  className="w-20 text-center px-3 py-2 bg-gray-50 text-gray-800 text-base font-bold rounded-lg border-2 border-gray-300 focus:border-primary focus:outline-none"
+                />
+                
+                <button
+                  type="button"
+                  onClick={incrementQuantity}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300"
+                >
+                  <Plus size={18} className="text-gray-600" />
+                </button>
+              </div>
+            </div>
 
             <div className="mt-auto pt-4 flex gap-3">
               <button

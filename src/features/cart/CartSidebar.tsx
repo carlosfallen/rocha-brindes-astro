@@ -1,11 +1,14 @@
-// src/features/cart/CartSidebar.tsx (atualizar renderização de imagens)
-import { useState } from 'react'
+// src/features/cart/CartSidebar.tsx
+import { useState, useEffect } from 'react'
 import { X, Trash2, Send, ShoppingCart, Plus, Minus } from 'lucide-react'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '../../core/lib/firebase'
 import { useCart } from '../../core/store/cart'
 import { optimizeUrl } from '../../shared/utils/image'
 
 export default function CartSidebar() {
   const { items, isOpen, toggle, remove, clear, updateQuantity } = useCart()
+  const [whatsappNumber, setWhatsappNumber] = useState('5589994333316')
   const [formData, setFormData] = useState({
     name: '',
     doc: '',
@@ -14,6 +17,24 @@ export default function CartSidebar() {
     obs: ''
   })
 
+  useEffect(() => {
+    void loadWhatsAppNumber()
+  }, [])
+
+  const loadWhatsAppNumber = async () => {
+    try {
+      const docSnap = await getDoc(doc(db, 'config', 'general'))
+      if (docSnap.exists()) {
+        const data = docSnap.data()
+        if (data.whatsappNumber) {
+          setWhatsappNumber(data.whatsappNumber)
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar Contato:', error)
+    }
+  }
+
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -21,7 +42,7 @@ export default function CartSidebar() {
     
     let message = `*Orçamento - Rocha Brindes*\n\n`
     message += `*Cliente:* ${formData.name}\n`
-    message += `*CPF/CNPJ:* ${formData.doc}\n`
+    message += `*Contato:* ${formData.doc}\n`
     message += `*Endereço:* ${formData.address}\n`
     message += `*CEP:* ${formData.cep}\n\n`
     message += `*Produtos:*\n`
@@ -36,7 +57,7 @@ export default function CartSidebar() {
       message += `\n*Observações:* ${formData.obs}`
     }
 
-    const whatsappUrl = `https://wa.me/5589994333316?text=${encodeURIComponent(message)}`
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
     window.open(whatsappUrl, '_blank')
     
     clear()
@@ -87,21 +108,37 @@ export default function CartSidebar() {
             ) : (
               <>
                 {items.map(item => {
-                  const imgId = item.thumb_url || item.imagem_url || item.variacoes?.[0]?.thumb_url
-                  const imgUrl = imgId ? optimizeUrl(imgId, 'thumbnail') : ''
+                  let imgId = item.thumb_url || item.imagem_url
+                  
+                  if (item.cor && item.variacoes?.length) {
+                    const colorVariation = item.variacoes.find(v => v.cor === item.cor)
+                    if (colorVariation) {
+                      imgId = colorVariation.thumb_url || colorVariation.imagem_url || imgId
+                    }
+                  }
+                  
+                  if (!imgId && item.variacoes?.[0]) {
+                    imgId = item.variacoes[0].thumb_url || item.variacoes[0].imagem_url
+                  }
+                  
+                  const imgUrl = imgId ? optimizeUrl(imgId, 'public') : ''
 
                   return (
                     <div
-                      key={item.id}
+                      key={`${item.id}-${item.cor || 'default'}`}
                       className="flex gap-4 bg-white p-4 rounded-xl shadow-card hover:shadow-card-hover transition-all duration-200"
                     >
-                      {imgUrl && (
+                      {imgUrl ? (
                         <img
                           src={imgUrl}
                           alt={item.nome}
                           className="w-20 h-20 object-contain rounded-lg bg-gray-50"
                           loading="lazy"
                         />
+                      ) : (
+                        <div className="w-20 h-20 flex items-center justify-center bg-gray-100 rounded-lg">
+                          <span className="text-xs text-gray-400">Sem img</span>
+                        </div>
                       )}
 
                       <div className="flex-1 min-w-0">
@@ -116,10 +153,6 @@ export default function CartSidebar() {
                           <div className="flex items-center gap-2 mb-2">
                             <span className="text-xs text-gray-600">Cor:</span>
                             <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded-md">
-                              <div 
-                                className="w-3 h-3 rounded-full border border-gray-300"
-                                style={{ backgroundColor: item.cor }}
-                              />
                               <span className="text-xs font-medium text-gray-700">{item.cor}</span>
                             </span>
                           </div>
@@ -188,7 +221,7 @@ export default function CartSidebar() {
 
               <input
                 type="text"
-                placeholder="CPF/CNPJ"
+                placeholder="Contato"
                 value={formData.doc}
                 onChange={(e) =>
                   setFormData({ ...formData, doc: e.target.value })

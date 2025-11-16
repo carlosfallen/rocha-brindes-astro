@@ -1,6 +1,5 @@
 // src/shared/components/PopularCategories.tsx
 import { memo } from 'react'
-import Image from './Image'
 import { optimizeUrl } from '../utils/image'
 import type { Category } from '../../types/product'
 
@@ -26,8 +25,7 @@ export default memo(function PopularCategories({ categories, onSelect }: Props) 
             <button
               key={cat.id}
               onClick={() => onSelect(cat.nome)}
-              className="relative h-36 md:h-44 rounded-2xl overflow-hidden group bg-gradient-to-br from-gray-100 to-gray-200 shadow-card hover:shadow-card-hover transition-all duration-300 transform hover:-translate-y-1"
-              type="button"
+              className="relative h-36 md:h-44 rounded-2xl overflow-hidden group bg-gray-200 shadow-card hover:shadow-card-hover transition-all transform hover:-translate-y-1"
             >
               {imageUrl && (
                 <img
@@ -38,7 +36,7 @@ export default memo(function PopularCategories({ categories, onSelect }: Props) 
                 />
               )}
 
-              <div className="absolute inset-0 bg-gradient-to-t from-dark/80 via-dark/40 to-transparent group-hover:from-primary/80 transition-all duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-t from-dark/80 via-dark/40 to-transparent group-hover:from-primary/80 transition-all" />
 
               <div className="absolute inset-0 flex items-end p-4">
                 <span className="text-white font-title font-bold text-base md:text-lg drop-shadow-lg">

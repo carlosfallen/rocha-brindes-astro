@@ -1,7 +1,6 @@
 // src/features/catalog/components/ProductCard.tsx
 import { memo } from 'react'
 import { ShoppingCart, Eye } from 'lucide-react'
-import Image from '../../../shared/components/Image'
 import { optimizeUrl } from '../../../shared/utils/image'
 import type { Product } from '../../../types/product'
 
@@ -13,7 +12,7 @@ interface Props {
 
 export default memo(function ProductCard({ product, onView, onAdd }: Props) {
   const imgId = product.thumb_url || product.imagem_url || product.variacoes?.[0]?.thumb_url || product.variacoes?.[0]?.imagem_url
-  const imgUrl = imgId ? optimizeUrl(imgId, 'thumbnail') : ''
+  const imgUrl = imgId ? optimizeUrl(imgId, 'public') : ''
   
   return (
     <article className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 transform hover:-translate-y-1">
@@ -63,15 +62,8 @@ export default memo(function ProductCard({ product, onView, onAdd }: Props) {
             <Eye size={16} />
             Detalhes
           </button>
-          <button 
-            onClick={onAdd} 
-            className="bg-primary hover:bg-primary-dark text-white p-3 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105" 
-            aria-label={`Adicionar ${product.nome} ao orçamento`}
-          >
-            <ShoppingCart size={20} strokeWidth={2.5} aria-hidden="true" />
-          </button>
         </div>
       </div>
     </article>
   )
-})
+}) 

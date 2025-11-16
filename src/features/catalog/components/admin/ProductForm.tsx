@@ -1,10 +1,10 @@
-// src/components/admin/ProductForm.tsx
 import { useState } from 'react'
 import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { db, storage } from '../../../../core/lib/firebase'
 import { useCategories } from '../../../../core/hooks/useCategories'
 import { uploadToCloudflare } from '../../../../core/lib/cloudflare'
+import { fetchProductGroupFromSheet } from '../../../../core/lib/googleSheets' // 👈 NOVO
 import { X, Upload } from 'lucide-react'
 import type { ProductVariation } from '../../../../types/product'
 
@@ -22,9 +22,13 @@ export default function ProductForm() {
     Array<{ cor: string; image: File | null; preview: string }>
   >([])
   const [currentColor, setCurrentColor] = useState('')
+  const [mainColor, setMainColor] = useState('') // 👈 cor principal escolhida
 
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+
+  // 👇 loading só da planilha
+  const [sheetLoading, setSheetLoading] = useState(false)
 
   const { data: categories = [] } = useCategories()
 
@@ -38,10 +42,18 @@ export default function ProductForm() {
 
   const handleAddVariation = () => {
     if (currentColor.trim()) {
-      setVariations([
+      const newColor = currentColor.trim()
+      const newVariations = [
         ...variations,
-        { cor: currentColor.trim(), image: null, preview: '' },
-      ])
+        { cor: newColor, image: null, preview: '' },
+      ]
+      setVariations(newVariations)
+
+      // se ainda não tem cor principal, assume a primeira que adicionar
+      if (!mainColor) {
+        setMainColor(newColor)
+      }
+
       setCurrentColor('')
     }
   }
@@ -54,7 +66,17 @@ export default function ProductForm() {
   }
 
   const handleRemoveVariation = (index: number) => {
-    setVariations(variations.filter((_, i) => i !== index))
+    const removedColor = variations[index]?.cor
+    const newVariations = variations.filter((_, i) => i !== index)
+    setVariations(newVariations)
+
+    // se removeu a cor principal, tenta definir outra
+    setMainColor((prev) => {
+      if (prev && prev === removedColor) {
+        return newVariations[0]?.cor ?? ''
+      }
+      return prev
+    })
   }
 
   async function uploadOriginal(
@@ -67,63 +89,186 @@ export default function ProductForm() {
     return getDownloadURL(storageRef)
   }
 
-// src/features/catalog/components/admin/ProductForm.tsx (somente handleSubmit)
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setLoading(true)
-  setMessage('')
+  const handleSkuBlur = async () => {
+    const value = sku.trim()
+    if (!value) return
 
-  try {
-    if (!mainImage) throw new Error('Selecione a imagem principal')
-    if (!sku.trim()) throw new Error('Informe um código/SKU')
+    setSheetLoading(true)
+    setMessage('')
 
-    const mainImageId = await uploadToCloudflare(mainImage)
-    const allImageIds: string[] = [mainImageId]
+    try {
+      const group = await fetchProductGroupFromSheet(value)
 
-    const variationsData: ProductVariation[] = []
+      if (!group) {
+        setMessage('Nenhum produto encontrado na planilha com esse código.')
+        return
+      }
 
-    for (const variation of variations) {
-      if (!variation.image) continue
+      // 👉 Garante que o sku fica sempre no formato base (1000_115)
+      setSku(group.baseSku)
 
-      const imageId = await uploadToCloudflare(variation.image)
-      variationsData.push({
-        cor: variation.cor,
-        imagem_url: imageId,
-        thumb_url: imageId,
-      })
-      allImageIds.push(imageId)
+      // Nome sem cor
+      if (group.nome) {
+        setNome(group.nome)
+      }
+
+      // Descrição
+      if (group.descricao) {
+        setDescricao(group.descricao)
+      }
+
+      // Categorias: marca as que vierem da planilha
+      if (group.categorias?.length) {
+        setSelectedCategories(group.categorias)
+      }
+
+      // Destaque
+      setDestaque(group.destaque)
+
+      // Variações: cada cor da planilha vira uma variação no form
+      if (group.variacoes?.length) {
+        const novasVariacoes = group.variacoes.map((v: { cor: string }) => ({
+          cor: v.cor,
+          image: null,
+          preview: '',
+        }))
+        setVariations(novasVariacoes)
+
+        // define cor principal vinda da planilha:
+        // prioridade: cor com "preto" no nome, senão a primeira
+        const preta = group.variacoes.find((v: { cor: string }) =>
+          v.cor.toLowerCase().includes('preto')
+        )
+        if (preta) {
+          setMainColor(preta.cor)
+        } else if (group.variacoes[0]) {
+          setMainColor(group.variacoes[0].cor)
+        } else {
+          setMainColor('')
+        }
+      } else {
+        setVariations([])
+        setMainColor('')
+      }
+
+      setMessage('Dados preenchidos a partir da planilha ✅')
+    } catch (err) {
+      console.error(err)
+      setMessage('Erro ao buscar dados na planilha.')
+    } finally {
+      setSheetLoading(false)
     }
-
-    await setDoc(doc(collection(db, 'produtos'), sku), {
-      id: sku,
-      nome,
-      descricao,
-      categorias: selectedCategories,
-      destaque,
-      variacoes: variationsData,
-      imagem_url: mainImageId,
-      thumb_url: mainImageId,
-      imagens_urls: allImageIds,
-      thumbs_urls: allImageIds,
-      createdAt: serverTimestamp(),
-    })
-
-    setMessage('Produto salvo com sucesso!')
-    setNome('')
-    setSku('')
-    setDescricao('')
-    setDestaque(false)
-    setSelectedCategories([])
-    setMainImage(null)
-    setMainImagePreview('')
-    setVariations([])
-  } catch (err) {
-    console.error(err)
-    setMessage(err instanceof Error ? err.message : 'Erro ao salvar produto')
-  } finally {
-    setLoading(false)
   }
-}
+
+  // src/features/catalog/components/admin/ProductForm.tsx - handleSubmit
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage('')
+
+    try {
+      if (!sku.trim()) throw new Error('Informe um código/SKU')
+
+      const allImageIds: string[] = []
+      const variationsData: ProductVariation[] = []
+
+      let mainImageId: string | null = null
+
+      // mapa de cor -> imageId (para poder escolher a principal pela cor)
+      const variationImageByColor: Record<string, string> = {}
+
+      // 1) Faz upload das variações primeiro
+      for (const variation of variations) {
+        if (!variation.image) continue
+
+        const imageId = await uploadToCloudflare(variation.image, {
+          folder: `produtos/${sku}/variacoes`,
+          productId: sku,
+          variation: variation.cor,
+          type: 'variation',
+        })
+
+        variationsData.push({
+          cor: variation.cor,
+          imagem_url: imageId,
+          thumb_url: imageId,
+        })
+
+        allImageIds.push(imageId)
+        variationImageByColor[variation.cor] = imageId
+      }
+
+      // 2) Se o usuário enviou imagem principal, ela manda em tudo
+      if (mainImage) {
+        mainImageId = await uploadToCloudflare(mainImage, {
+          folder: `produtos/${sku}`,
+          productId: sku,
+          type: 'main',
+        })
+
+        // principal sempre na frente do array
+        allImageIds.unshift(mainImageId)
+      } else {
+        // 3) Se NÃO tem imagem principal, tenta usar a cor principal escolhida
+        if (mainColor && variationImageByColor[mainColor]) {
+          mainImageId = variationImageByColor[mainColor]
+        } else {
+          // se não escolher cor principal, prioridade pra uma variação com "preto"
+          const pretaKey = Object.keys(variationImageByColor).find((c) =>
+            c.toLowerCase().includes('preto')
+          )
+
+          if (pretaKey) {
+            mainImageId = variationImageByColor[pretaKey]
+          } else {
+            // fallback: primeira variação com imagem
+            const firstImageId = Object.values(variationImageByColor)[0]
+            if (firstImageId) {
+              mainImageId = firstImageId
+            }
+          }
+        }
+      }
+
+      if (!mainImageId) {
+        throw new Error(
+          'Envie pelo menos uma imagem (principal ou de alguma variação).'
+        )
+      }
+
+      await setDoc(doc(collection(db, 'produtos'), sku), {
+        id: sku,
+        nome,
+        descricao,
+        categorias: selectedCategories,
+        destaque,
+        variacoes: variationsData,
+        imagem_url: mainImageId,
+        thumb_url: mainImageId,
+        imagens_urls: allImageIds,
+        thumbs_urls: allImageIds,
+        createdAt: serverTimestamp(),
+      })
+
+      setMessage('Produto salvo com sucesso!')
+      setNome('')
+      setSku('')
+      setDescricao('')
+      setDestaque(false)
+      setSelectedCategories([])
+      setMainImage(null)
+      setMainImagePreview('')
+      setVariations([])
+      setCurrentColor('')
+      setMainColor('')
+    } catch (err) {
+      console.error(err)
+      setMessage(err instanceof Error ? err.message : 'Erro ao salvar produto')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">
       <h2 className="text-xl font-title font-bold mb-6">Adicionar Produto</h2>
@@ -143,13 +288,24 @@ const handleSubmit = async (e: React.FormEvent) => {
             <label className="block text-sm font-semibold mb-2">
               SKU/Código
             </label>
-            <input
-              type="text"
-              value={sku}
-              onChange={(e) => setSku(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
-              required
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={sku}
+                onChange={(e) => setSku(e.target.value)}
+                onBlur={handleSkuBlur} // 👈 busca automática ao sair do campo
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                required
+              />
+              <button
+                type="button"
+                onClick={handleSkuBlur}
+                disabled={sheetLoading}
+                className="px-3 py-2 text-sm rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+              >
+                {sheetLoading ? 'Buscando...' : 'Planilha'}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -205,7 +361,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
         <div>
           <label className="block text-sm font-semibold mb-2">
-            Imagem Principal *
+            Imagem Principal (opcional)
           </label>
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
             {mainImagePreview ? (
@@ -230,14 +386,13 @@ const handleSubmit = async (e: React.FormEvent) => {
               <label className="flex flex-col items-center gap-2 cursor-pointer">
                 <Upload className="text-gray-400" size={48} />
                 <span className="text-sm text-gray-600">
-                  Clique para selecionar imagem principal
+                  Clique para selecionar imagem principal (opcional)
                 </span>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleMainImageChange}
                   className="hidden"
-                  required
                 />
               </label>
             )}
@@ -248,6 +403,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           <label className="block text-sm font-semibold mb-2">
             Variações de Cor
           </label>
+
           <div className="flex gap-2 mb-4">
             <input
               type="text"
@@ -271,6 +427,30 @@ const handleSubmit = async (e: React.FormEvent) => {
             </button>
           </div>
 
+          {variations.length > 0 && (
+            <div className="mb-4">
+              <label className="block text-sm font-semibold mb-1">
+                Cor principal
+              </label>
+              <select
+                value={mainColor}
+                onChange={(e) => setMainColor(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+              >
+                <option value="">Selecione a cor principal</option>
+                {variations.map((variation, index) => (
+                  <option key={variation.cor + index} value={variation.cor}>
+                    {variation.cor}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                Essa cor será usada como principal se você não enviar imagem
+                principal do produto.
+              </p>
+            </div>
+          )}
+
           <div className="space-y-3">
             {variations.map((variation, index) => (
               <div
@@ -278,9 +458,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
               >
                 <div className="flex-1">
-                  <p className="font-semibold text-sm mb-2">
-                    {variation.cor}
-                  </p>
+                  <p className="font-semibold text-sm mb-2">{variation.cor}</p>
                   {variation.preview ? (
                     <div className="relative w-24 h-24">
                       <img
@@ -298,8 +476,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                         accept="image/*"
                         onChange={(e) => {
                           const file = e.target.files?.[0]
-                          if (file)
-                            handleVariationImageChange(index, file)
+                          if (file) handleVariationImageChange(index, file)
                         }}
                         className="hidden"
                       />
@@ -321,7 +498,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         {message && (
           <p
             className={`text-center font-semibold ${
-              message.includes('sucesso')
+              message.includes('sucesso') || message.includes('planilha')
                 ? 'text-green-600'
                 : 'text-red-600'
             }`}

@@ -1,31 +1,27 @@
 // src/shared/utils/image.ts
+const CLOUDFLARE_ACCOUNT_HASH = 'iem94FVEkj3Qjv3DsJXpbQ'
+
 export function optimizeUrl(imageId: string, variant: 'public' | 'thumbnail' | 'original' = 'public'): string {
   if (!imageId) return ''
+  if (imageId.startsWith('http://') || imageId.startsWith('https://')) return imageId
+  if (imageId.startsWith('blob:') || imageId.startsWith('data:')) return imageId
   
-  // Se já for uma URL completa (http/https), retorna como está
-  if (imageId.startsWith('http://') || imageId.startsWith('https://')) {
-    return imageId
-  }
-  
-  // Se for blob ou data URL, retorna como está
-  if (imageId.startsWith('blob:') || imageId.startsWith('data:')) {
-    return imageId
-  }
-  
-  // Cloudflare Images URL
-  return `https://imagedelivery.net/iem94FVEkj3Qjv3DsJXpbQ/${imageId}/${variant}`
+  return `https://imagedelivery.net/${CLOUDFLARE_ACCOUNT_HASH}/${imageId}/${variant}`
 }
 
 export function preloadImage(imageId: string, priority: 'high' | 'low' = 'high') {
+  if (typeof window === 'undefined') return
+  
   const link = document.createElement('link')
   link.rel = 'preload'
   link.as = 'image'
   link.href = optimizeUrl(imageId, 'public')
-  link.fetchPriority = priority
   document.head.appendChild(link)
 }
 
 export function preloadCriticalImages(imageIds: string[]) {
+  if (typeof window === 'undefined') return
+  
   imageIds.slice(0, 3).forEach((id, i) => {
     if (id) preloadImage(id, i === 0 ? 'high' : 'low')
   })
