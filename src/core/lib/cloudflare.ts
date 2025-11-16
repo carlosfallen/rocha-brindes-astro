@@ -1,43 +1,43 @@
 // src/core/lib/cloudflare.ts
-const CLOUDFLARE_ACCOUNT_ID = 'f19932f2396bfc72bd1f3d6be3c68c9f'
 const CLOUDFLARE_ACCOUNT_HASH = 'iem94FVEkj3Qjv3DsJXpbQ'
-const CLOUDFLARE_API_TOKEN = import.meta.env.CLOUDFLARE_IMAGES_TOKEN
 
 export async function uploadToCloudflare(file: File): Promise<string> {
-  const formData = new FormData()
-  formData.append('file', file)
+  const formData = new FormData();
+  formData.append("file", file);
 
-  const response = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/images/v1`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
-      },
-      body: formData,
-    }
-  )
+  const res = await fetch("https://imagens.bjeslee19.workers.dev/", {
+    method: "POST",
+    body: formData,
+  });
 
-  if (!response.ok) {
-    throw new Error('Erro ao fazer upload para Cloudflare')
+  const text = await res.text();
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = text;
   }
 
-  const data = await response.json()
-  return data.result.id
+  if (!res.ok) {
+    console.error("Upload error RAW:", data);
+    throw new Error(
+      typeof data === "string" ? data : JSON.stringify(data)
+    );
+  }
+
+  if (!data || !data.imageId) {
+    console.error("Upload OK mas sem imageId:", data);
+    throw new Error("ID da imagem não retornado pelo servidor");
+  }
+
+  return data.imageId as string;
 }
 
-export function getCloudflareImageUrl(imageId: string, variant: 'public' | 'thumbnail' | 'original' = 'public'): string {
+
+export function optimizeUrl(imageId: string, variant: 'public' | 'thumbnail' | 'original' = 'public'): string {
   return `https://imagedelivery.net/${CLOUDFLARE_ACCOUNT_HASH}/${imageId}/${variant}`
 }
 
 export async function deleteCloudflareImage(imageId: string): Promise<void> {
-  await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/images/v1/${imageId}`,
-    {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
-      },
-    }
-  )
+  // Implementar se necessário
 }
