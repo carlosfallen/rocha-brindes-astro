@@ -21,7 +21,7 @@ export default function Header() {
             <img 
               src={logoUrl} 
               alt="Rocha Brindes" 
-              className="h-10 sm:h-14 md:h-16 w-auto object-contain" 
+              className="h-5 sm:h-7 md:h-9 w-auto object-contain" 
               loading="eager"
             />
           )}
