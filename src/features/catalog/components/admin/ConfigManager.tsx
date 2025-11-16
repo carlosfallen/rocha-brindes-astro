@@ -30,15 +30,24 @@ export default function ConfigManager() {
     setLoadingData(true)
     try {
       const docSnap = await getDoc(doc(db, 'config', 'general'))
-      if (docSnap.exists()) {
-        const data = docSnap.data() as ConfigData
-        setConfig({
-          whatsappNumber: data.whatsappNumber || '',
-          companyName: data.companyName || '',
-          companyEmail: data.companyEmail || '',
-          companyAddress: data.companyAddress || ''
-        })
-      }
+if (docSnap.exists()) {
+  const data = docSnap.data() as ConfigData
+
+  // remove o 55 se existir
+  const num = data.whatsappNumber?.replace(/\D/g, '') || ''
+  const withoutPrefix = num.startsWith('55') ? num.slice(2) : num
+
+  // formata de volta para exibição
+  const formatted = formatWhatsApp(withoutPrefix)
+
+  setConfig({
+    whatsappNumber: formatted,
+    companyName: data.companyName || '',
+    companyEmail: data.companyEmail || '',
+    companyAddress: data.companyAddress || ''
+  })
+}
+
     } catch (error) {
       console.error('Erro ao carregar configurações:', error)
       setMessage('Erro ao carregar configurações')
