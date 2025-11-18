@@ -1,11 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import AppWrapper from '../components/AppWrapper'
-import HomePage from '../components/HomePage'
+import CheckoutPage from '../components/checkout/CheckoutPage'
 ---
 
-<Layout title="88 Brindes - Página Inicial">
+<Layout title="88 Brindes - Finalizar Orçamento">
   <AppWrapper client:only="react">
-    <HomePage client:only="react" />
+    <CheckoutPage />
   </AppWrapper>
 </Layout>

@@ -1,0 +1,11 @@
+import{j as e}from"./Providers.Bn6N5NNK.js";import{r as l}from"./index.Ba-IbuDT.js";import{c as s}from"./createLucideIcon.CWG7bwo-.js";/**
+ * @license lucide-react v0.300.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const n=s("Grid3x3",[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",key:"afitv7"}],["path",{d:"M3 9h18",key:"1pudct"}],["path",{d:"M3 15h18",key:"5xshup"}],["path",{d:"M9 3v18",key:"fh3hqa"}],["path",{d:"M15 3v18",key:"14nvp0"}]]);/**
+ * @license lucide-react v0.300.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const c=s("Search",[["circle",{cx:"11",cy:"11",r:"8",key:"4ej97u"}],["path",{d:"m21 21-4.3-4.3",key:"1qie3q"}]]),u=l.memo(function({categories:o,selected:r,onSelect:a,search:i,onSearch:d}){return e.jsxs("aside",{className:"sticky top-28 h-fit space-y-6",children:[e.jsx("div",{className:"bg-white rounded-2xl shadow-card p-6",children:e.jsxs("div",{className:"relative",children:[e.jsx("input",{type:"text",value:i,onChange:t=>d(t.target.value),placeholder:"Buscar produtos...",className:"w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm"}),e.jsx(c,{className:"absolute left-4 top-1/2 -translate-y-1/2 text-gray-400",size:20})]})}),e.jsxs("div",{className:"bg-white rounded-2xl shadow-card p-6",children:[e.jsxs("div",{className:"flex items-center gap-2 mb-5",children:[e.jsx(n,{className:"text-primary",size:20}),e.jsx("h3",{className:"font-title font-bold text-lg text-dark",children:"Categorias"})]}),e.jsxs("div",{className:"space-y-2",children:[e.jsx("button",{onClick:()=>a("Todos"),className:`w-full text-left px-4 py-3 rounded-xl font-medium transition-all duration-200 ${r==="Todos"?"bg-primary text-white shadow-md":"hover:bg-gray-50 text-gray-700 hover:pl-5"}`,children:"Todos os produtos"}),o.map(t=>e.jsx("button",{onClick:()=>a(t),className:`w-full text-left px-4 py-3 rounded-xl font-medium transition-all duration-200 ${r===t?"bg-primary text-white shadow-md":"hover:bg-gray-50 text-gray-700 hover:pl-5"}`,children:t},t))]})]})]})});export{u as default};

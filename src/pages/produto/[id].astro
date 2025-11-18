@@ -1,0 +1,17 @@
+---
+import Layout from '../../layouts/Layout.astro'
+import AppWrapper from '../../components/AppWrapper'
+import ProductDetail from '../../components/products/ProductDetail'
+
+export function getStaticPaths() {
+  return []
+}
+
+const { id } = Astro.params
+---
+
+<Layout title="88 Brindes - Detalhes do Produto">
+  <AppWrapper client:only="react">
+    <ProductDetail />
+  </AppWrapper>
+</Layout>

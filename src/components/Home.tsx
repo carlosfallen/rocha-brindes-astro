@@ -8,7 +8,7 @@ import Providers from './Providers'
 import type { Product } from '../types/product'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-const HeroBanner = lazy(() => import('../shared/components/HeroBanner'))
+const HeroBanner = lazy(() => import('./home/HeroBanner'))
 const PopularCategories = lazy(() => import('../shared/components/PopularCategories'))
 const CategorySidebar = lazy(() => import('../features/catalog/components/CategorySidebar'))
 const ProductGrid = lazy(() => import('../features/catalog/components/ProductGrid'))

@@ -18,9 +18,13 @@ interface CatalogData {
 }
 
 export function useCatalog(productLimit = 6) {
+  console.log('🔍 useCatalog being called') // LOG
+  
   return useQuery<CatalogData>({
     queryKey: ['catalog', productLimit],
     queryFn: async () => {
+      console.log('🔍 useCatalog queryFn executing') // LOG
+      
       const [productsSnap, categoriesSnap, layoutDoc] = await Promise.all([
         getDocs(query(collection(db, 'produtos'), orderBy('createdAt', 'desc'), limit(productLimit))),
         getDocs(query(collection(db, 'categorias'), orderBy('nome'))),

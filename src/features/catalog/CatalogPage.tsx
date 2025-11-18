@@ -5,7 +5,7 @@ import { useCart } from '../../core/store/cart'
 import Header from '../../shared/components/Header'
 import type { Product } from '../../types/product'
 
-const HeroBanner = lazy(() => import('../../shared/components/HeroBanner'))
+const HeroBanner = lazy(() => import('../../components/home/HeroBanner'))
 const PopularCategories = lazy(() => import('../../shared/components/PopularCategories'))
 const CategorySidebar = lazy(() => import('./components/CategorySidebar'))
 const ProductGrid = lazy(() => import('./components/ProductGrid'))

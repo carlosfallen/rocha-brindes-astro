@@ -10,7 +10,7 @@ export default defineConfig({
       applyBaseStyles: false,
     })
   ],
-  output: 'static',
+  output: 'hybrid',
   vite: {
     resolve: {
       alias: {
