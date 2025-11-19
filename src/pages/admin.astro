@@ -1,8 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro'
 import AdminApp from '../components/Admin'
+import AppWrapper from '../components/AppWrapper' 
 ---
 
 <Layout title="Admin - Rocha Brindes">
-  <AdminApp client:only="react" />
+  <AppWrapper client:only="react">
+    <AdminApp />
+  </AppWrapper>
 </Layout>

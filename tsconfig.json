@@ -1,5 +1,14 @@
 {
   "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "jsx": "react-jsx",               // necessário para .tsx
+    "jsxImportSource": "react",       // necessário para React 18+
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "moduleResolution": "bundler",
+    "baseUrl": "."
+  },
   "include": [".astro/types.d.ts", "**/*"],
   "exclude": ["dist"]
 }

@@ -1,7 +1,5 @@
-// src/components/AppWrapper.tsx
+import QueryProvider from "../core/providers/QueryProvider";
 import { type ReactNode } from 'react'
-import Providers from './Providers'
-import Header from '../shared/components/Header'
 
 interface Props {
   children: ReactNode
@@ -9,11 +7,8 @@ interface Props {
 
 export default function AppWrapper({ children }: Props) {
   return (
-    <Providers>
-      <Header />
-      <main className="min-h-screen">
-        {children}
-      </main>
-    </Providers>
-  )
+    <QueryProvider>
+      {children}
+    </QueryProvider>
+  );
 }
