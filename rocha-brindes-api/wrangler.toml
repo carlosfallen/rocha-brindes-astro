@@ -1,0 +1,19 @@
+# wrangler.toml
+name = "rocha-brindes-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+JWT_SECRET = "sua-chave-secreta-aqui-mude-em-producao"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rocha-brindes"
+database_id = "xxxx-xxxx-xxxx-xxxx"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "xxxx-xxxx-xxxx-xxxx"
+
+[observability]
+enabled = true

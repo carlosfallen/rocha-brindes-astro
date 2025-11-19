@@ -1,0 +1,25 @@
+{
+  "name": "rocha-brindes-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251119.0",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.49.0"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.6.0",
+    "bcryptjs": "^3.0.3",
+    "hono": "^4.10.6",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.25.76"
+  }
+}
