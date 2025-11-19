@@ -3,10 +3,11 @@ import { useState, useEffect } from 'react'
 import { useCart } from '../../core/store/cart'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../../core/lib/firebase'
+import Providers from '../Providers'
 import { optimizeUrl } from '../../shared/utils/image'
 import { Send, ArrowLeft } from 'lucide-react'
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const { items, clear } = useCart()
   const [whatsappNumber, setWhatsappNumber] = useState('5562992485958')
   const [formData, setFormData] = useState({
@@ -89,7 +90,6 @@ export default function CheckoutPage() {
       <h1 className="text-3xl md:text-4xl font-title font-bold text-dark mb-8">Finalizar Orçamento</h1>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Formulário */}
         <div className="lg:col-span-2">
           <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-card p-6 space-y-4">
             <div>
@@ -156,10 +156,8 @@ export default function CheckoutPage() {
           </form>
         </div>
 
-        {/* Resumo do Pedido */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl shadow-card p-6 sticky top-24">
-// src/components/checkout/CheckoutPage.tsx (continuação)
             <h2 className="text-xl font-title font-bold text-dark mb-6">Resumo do Pedido</h2>
             
             <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
@@ -211,5 +209,13 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CheckoutPage() {
+  return (
+    <Providers>
+      <CheckoutContent />
+    </Providers>
   )
 }

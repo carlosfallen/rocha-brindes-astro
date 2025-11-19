@@ -1,10 +1,11 @@
 // src/components/cart/CartPage.tsx
 import { useState } from 'react'
 import { useCart } from '../../core/store/cart'
+import Providers from '../Providers'
 import { optimizeUrl } from '../../shared/utils/image'
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react'
 
-export default function CartPage() {
+function CartContent() {
   const { items, remove, updateQuantity, clear } = useCart()
 
   if (items.length === 0) {
@@ -16,7 +17,7 @@ export default function CartPage() {
           </div>
           <h2 className="text-2xl font-title font-bold text-dark mb-4">Seu carrinho está vazio</h2>
           <p className="text-gray-600 mb-8">Adicione produtos para solicitar um orçamento</p>
-          <a
+          
             href="/produtos"
             className="inline-flex items-center gap-2 bg-primary hover:bg-primary-dark text-white font-bold px-6 py-3 rounded-xl transition-all"
           >
@@ -38,7 +39,6 @@ export default function CartPage() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Lista de Produtos */}
         <div className="lg:col-span-2 space-y-4">
           {items.map(item => {
             let imgId = item.thumb_url || item.imagem_url
@@ -130,7 +130,6 @@ export default function CartPage() {
           </button>
         </div>
 
-        {/* Resumo */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl shadow-card p-6 sticky top-24">
             <h2 className="text-xl font-title font-bold text-dark mb-6">Resumo do Pedido</h2>
@@ -142,7 +141,7 @@ export default function CartPage() {
               </div>
             </div>
 
-            <a
+            
               href="/finalizar-orcamento"
               className="w-full bg-gradient-to-r from-primary to-primary-dark text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
             >
@@ -150,7 +149,7 @@ export default function CartPage() {
               <ArrowRight size={20} />
             </a>
 
-            <a
+            
               href="/produtos"
               className="block w-full text-center py-3 mt-3 text-gray-600 hover:text-primary font-medium transition-colors"
             >
@@ -160,5 +159,13 @@ export default function CartPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CartPage() {
+  return (
+    <Providers>
+      <CartContent />
+    </Providers>
   )
 }

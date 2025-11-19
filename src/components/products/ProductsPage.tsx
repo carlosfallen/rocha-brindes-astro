@@ -2,12 +2,13 @@
 import { useState, useMemo } from 'react'
 import { useCatalog } from '../../core/hooks/useCatalog'
 import { useCart } from '../../core/store/cart'
+import Providers from '../Providers'
 import CategorySidebar from '../../features/catalog/components/CategorySidebar'
 import ProductCard from './ProductCard'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Product } from '../../types/product'
 
-export default function ProductsPage() {
+function ProductsContent() {
   const { data, isLoading } = useCatalog(1000)
   const { category, search, setCategory, setSearch } = useCart()
   const [page, setPage] = useState(0)
@@ -125,5 +126,13 @@ export default function ProductsPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ProductsPage() {
+  return (
+    <Providers>
+      <ProductsContent />
+    </Providers>
   )
 }

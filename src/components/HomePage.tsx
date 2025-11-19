@@ -1,4 +1,5 @@
 // src/components/HomePage.tsx
+import Providers from './Providers'
 import HeroBanner from './home/HeroBanner'
 import FeaturedProducts from './home/FeaturedProducts'
 import NewProducts from './home/NewProducts'
@@ -9,7 +10,7 @@ import ClientsSection from './home/ClientsSection'
 
 export default function HomePage() {
   return (
-    <>
+    <Providers>
       <HeroBanner />
       <FeaturedProducts />
       <NewProducts />
@@ -17,6 +18,6 @@ export default function HomePage() {
       <NewsletterSection />
       <InstagramFeed />
       <ClientsSection />
-    </>
+    </Providers>
   )
 }

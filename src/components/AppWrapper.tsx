@@ -1,5 +1,8 @@
-import QueryProvider from "../core/providers/QueryProvider";
+// FILE: src/components/AppWrapper.tsx
 import { type ReactNode } from 'react'
+import Providers from './Providers'
+import Header from '../shared/components/Header'
+import CartSidebar from '../features/cart/CartSidebar'
 
 interface Props {
   children: ReactNode
@@ -7,8 +10,12 @@ interface Props {
 
 export default function AppWrapper({ children }: Props) {
   return (
-    <QueryProvider>
-      {children}
-    </QueryProvider>
-  );
+    <Providers>
+      <Header />
+      <main className="min-h-screen">
+        {children}
+      </main>
+      <CartSidebar />
+    </Providers>
+  )
 }
