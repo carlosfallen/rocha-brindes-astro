@@ -1,5 +1,5 @@
 // src/features/product/ProductDetailPage.tsx
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../../core/lib/firebase'
@@ -9,6 +9,8 @@ import Layout from '../../components/Layout'
 import Providers from '../../components/Providers'
 import { ShoppingCart, Plus, Minus, Package, Tag, ArrowLeft, Share2 } from 'lucide-react'
 import type { Product, ProductVariation } from '../../types/product'
+
+const CartSidebar = lazy(() => import('../cart/CartSidebar'))
 
 interface Props {
   productId?: string
@@ -125,6 +127,9 @@ function ProductDetailContent({ productId: initialProductId }: Props) {
             Voltar ao catálogo
           </a>
         </div>
+        <Suspense fallback={null}>
+          <CartSidebar />
+        </Suspense>
       </Layout>
     )
   }
@@ -145,6 +150,9 @@ function ProductDetailContent({ productId: initialProductId }: Props) {
             </div>
           </div>
         </div>
+        <Suspense fallback={null}>
+          <CartSidebar />
+        </Suspense>
       </Layout>
     )
   }
@@ -178,7 +186,7 @@ function ProductDetailContent({ productId: initialProductId }: Props) {
                     <img
                       src={active.url}
                       alt={`${product.nome} - ${active.label}`}
-                      className="w-full h-full object-contain p-8"
+                      className="w-full h-full object-contain"
                       loading="eager"
                     />
                   )}
@@ -357,6 +365,10 @@ function ProductDetailContent({ productId: initialProductId }: Props) {
           </div>
         </div>
       </div>
+
+      <Suspense fallback={null}>
+        <CartSidebar />
+      </Suspense>
     </Layout>
   )
 }

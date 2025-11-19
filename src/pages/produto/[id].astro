@@ -9,8 +9,7 @@ export async function getStaticPaths() {
   try {
     const productsSnap = await getDocs(collection(db, 'produtos'))
     const paths = productsSnap.docs.map(doc => ({
-      params: { id: doc.id },
-      props: { productId: doc.id }
+      params: { id: doc.id }
     }))
     
     return paths
@@ -20,9 +19,9 @@ export async function getStaticPaths() {
   }
 }
 
-const { productId } = Astro.props
+const { id } = Astro.params
 ---
 
 <Layout title="Produto - Rocha Brindes">
-  <ProductDetailPage client:only="react" productId={productId} />
+  <ProductDetailPage client:only="react" productId={id} />
 </Layout>

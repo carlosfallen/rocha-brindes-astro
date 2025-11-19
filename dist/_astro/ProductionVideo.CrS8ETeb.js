@@ -1,6 +1,0 @@
-import{j as e}from"./Providers.CRVvNzA1.js";import{c as t}from"./image.BQBxtT52.js";import"./index.Ba-IbuDT.js";/**
- * @license lucide-react v0.300.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */const o=t("Play",[["polygon",{points:"5 3 19 12 5 21 5 3",key:"191637"}]]);function a(){return e.jsxs("section",{className:"py-16",children:[e.jsx("h2",{className:"font-title font-bold text-3xl md:text-4xl text-dark text-center mb-8",children:"Conheça Nossa Produção"}),e.jsxs("div",{className:"relative aspect-video rounded-2xl overflow-hidden bg-gray-900 shadow-card group cursor-pointer",children:[e.jsx("img",{src:"/video-thumb.jpg",alt:"Vídeo de produção",className:"w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"}),e.jsx("div",{className:"absolute inset-0 bg-black/40 flex items-center justify-center",children:e.jsx("button",{className:"w-20 h-20 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-all transform group-hover:scale-110 shadow-xl",children:e.jsx(o,{size:32,className:"text-primary ml-1",fill:"currentColor"})})})]})]})}export{a as default};

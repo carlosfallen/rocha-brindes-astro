@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
 import { uploadToCloudflare, optimizeUrl, deleteCloudflareImage } from '../../../../core/lib/cloudflare'
 import { db } from '../../../../core/lib/firebase'
-import { Upload, X, Loader2, Image as ImageIcon, Sparkles, Bell, LayoutDashboard } from 'lucide-react'
+import { Upload, X, Loader2, Image as ImageIcon, Sparkles, Bell, LayoutDashboard, Users, Video } from 'lucide-react'
 
 interface LayoutAssets {
   logo?: string
@@ -12,7 +12,16 @@ interface LayoutAssets {
   popups: string[]
 }
 
-type AssetType = 'banners' | 'promotions' | 'popups'
+interface ClientsData {
+  clients: string[]
+}
+
+interface VideoData {
+  thumbnailId: string
+  videoUrl?: string
+}
+
+type AssetType = 'banners' | 'promotions' | 'popups' | 'clients'
 
 export default function LayoutManager() {
   const [assets, setAssets] = useState<LayoutAssets>({
@@ -20,12 +29,16 @@ export default function LayoutManager() {
     promotions: [],
     popups: [],
   })
+  const [clients, setClients] = useState<string[]>([])
+  const [video, setVideo] = useState<VideoData>({ thumbnailId: '', videoUrl: '' })
   const [loading, setLoading] = useState(false)
-  const [loadingType, setLoadingType] = useState<'logo' | AssetType | null>(null)
+  const [loadingType, setLoadingType] = useState<'logo' | AssetType | 'video' | null>(null)
   const [message, setMessage] = useState('')
 
   useEffect(() => {
     void loadAssets()
+    void loadClients()
+    void loadVideo()
   }, [])
 
   const loadAssets = async () => {
@@ -36,12 +49,42 @@ export default function LayoutManager() {
       }
     } catch (error) {
       console.error('Erro ao carregar assets:', error)
-      setMessage('Erro ao carregar configurações')
+    }
+  }
+
+  const loadClients = async () => {
+    try {
+      const docSnap = await getDoc(doc(db, 'config', 'clients'))
+      if (docSnap.exists()) {
+        const data = docSnap.data() as ClientsData
+        setClients(data.clients || [])
+      }
+    } catch (error) {
+      console.error('Erro ao carregar clientes:', error)
+    }
+  }
+
+  const loadVideo = async () => {
+    try {
+      const docSnap = await getDoc(doc(db, 'config', 'video'))
+      if (docSnap.exists()) {
+        setVideo(docSnap.data() as VideoData)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar vídeo:', error)
     }
   }
 
   const saveAssets = async (data: LayoutAssets) => {
     await setDoc(doc(db, 'config', 'layout'), data)
+  }
+
+  const saveClients = async (data: string[]) => {
+    await setDoc(doc(db, 'config', 'clients'), { clients: data })
+  }
+
+  const saveVideo = async (data: VideoData) => {
+    await setDoc(doc(db, 'config', 'video'), data)
   }
 
   const showMessage = (msg: string, timeout = 3000) => {
@@ -79,7 +122,7 @@ export default function LayoutManager() {
     files: FileList,
     type: AssetType,
     folder: string,
-    uploadType: 'banner' | 'promotion' | 'popup'
+    uploadType: 'banner' | 'promotion' | 'popup' | 'logo'
   ) => {
     setLoading(true)
     setLoadingType(type)
@@ -93,19 +136,27 @@ export default function LayoutManager() {
         imageIds.push(imageId)
       }
       
-      const newAssets: LayoutAssets = {
-        ...assets,
-        [type]: [...assets[type], ...imageIds]
+      if (type === 'clients') {
+        const newClients = [...clients, ...imageIds]
+        await saveClients(newClients)
+        setClients(newClients)
+        showMessage('Logos de clientes adicionados com sucesso!')
+      } else {
+        const newAssets: LayoutAssets = {
+          ...assets,
+          [type]: [...assets[type], ...imageIds]
+        }
+        await saveAssets(newAssets)
+        setAssets(newAssets)
+        
+        const typeNames = {
+          banners: 'Banners',
+          promotions: 'Promoções',
+          popups: 'Popups',
+          clients: 'Clientes'
+        }
+        showMessage(`${typeNames[type]} adicionados com sucesso!`)
       }
-      await saveAssets(newAssets)
-      setAssets(newAssets)
-      
-      const typeNames = {
-        banners: 'Banners',
-        promotions: 'Promoções',
-        popups: 'Popups'
-      }
-      showMessage(`${typeNames[type]} adicionados com sucesso!`)
     } catch (error) {
       console.error(error)
       showMessage(`Erro ao fazer upload`)
@@ -115,17 +166,52 @@ export default function LayoutManager() {
     }
   }
 
+  const handleVideoUpload = async (file: File, videoUrl: string) => {
+    setLoading(true)
+    setLoadingType('video')
+    try {
+      const imageId = await uploadToCloudflare(file, {
+        folder: 'layout/video',
+        type: 'banner'
+      })
+
+      if (video.thumbnailId) {
+        await deleteCloudflareImage(video.thumbnailId)
+      }
+
+      const newVideo: VideoData = { thumbnailId: imageId, videoUrl }
+      await saveVideo(newVideo)
+      setVideo(newVideo)
+      showMessage('Vídeo atualizado com sucesso!')
+    } catch (error) {
+      console.error(error)
+      showMessage('Erro ao fazer upload do vídeo')
+    } finally {
+      setLoading(false)
+      setLoadingType(null)
+    }
+  }
+
   const removeAsset = async (type: AssetType, index: number) => {
     try {
-      const imageId = assets[type][index]
-      await deleteCloudflareImage(imageId)
-      
-      const newAssets: LayoutAssets = {
-        ...assets,
-        [type]: assets[type].filter((_, i) => i !== index)
+      if (type === 'clients') {
+        const imageId = clients[index]
+        await deleteCloudflareImage(imageId)
+        
+        const newClients = clients.filter((_, i) => i !== index)
+        await saveClients(newClients)
+        setClients(newClients)
+      } else {
+        const imageId = assets[type][index]
+        await deleteCloudflareImage(imageId)
+        
+        const newAssets: LayoutAssets = {
+          ...assets,
+          [type]: assets[type].filter((_, i) => i !== index)
+        }
+        await saveAssets(newAssets)
+        setAssets(newAssets)
       }
-      await saveAssets(newAssets)
-      setAssets(newAssets)
       showMessage('Item removido com sucesso!')
     } catch (error) {
       console.error(error)
@@ -145,6 +231,21 @@ export default function LayoutManager() {
     } catch (error) {
       console.error(error)
       showMessage('Erro ao remover logo')
+    }
+  }
+
+  const removeVideo = async () => {
+    if (!video.thumbnailId) return
+    
+    try {
+      await deleteCloudflareImage(video.thumbnailId)
+      const newVideo: VideoData = { thumbnailId: '', videoUrl: '' }
+      await saveVideo(newVideo)
+      setVideo(newVideo)
+      showMessage('Vídeo removido com sucesso!')
+    } catch (error) {
+      console.error(error)
+      showMessage('Erro ao remover vídeo')
     }
   }
 
@@ -202,11 +303,6 @@ export default function LayoutManager() {
               <X size={20} />
             </button>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <p className="text-white text-xs font-medium text-center">
-              {type === 'banners' ? 'Banner' : type === 'promotions' ? 'Promoção' : 'Popup'} #{i + 1}
-            </p>
-          </div>
         </div>
       ))}
     </div>
@@ -223,7 +319,6 @@ export default function LayoutManager() {
 
   return (
     <div className="space-y-8">
-
       {message && (
         <div className={`p-4 rounded-xl text-center font-semibold shadow-md animate-fade-in ${message.includes('sucesso') ? 'bg-green-50 text-green-700 border-2 border-green-200' : 'bg-red-50 text-red-700 border-2 border-red-200'}`}>
           {message}
@@ -276,7 +371,7 @@ export default function LayoutManager() {
           </div>
           <div>
             <h2 className="text-xl font-title font-bold text-gray-800">Banners Hero</h2>
-            <p className="text-sm text-gray-500">Slides principais da página inicial (formato landscape)</p>
+            <p className="text-sm text-gray-500">Slides principais da página inicial</p>
           </div>
         </div>
         
@@ -295,7 +390,7 @@ export default function LayoutManager() {
         ) : (
           renderEmptyState(
             <LayoutDashboard size={28} className="text-gray-400" />,
-            'Nenhum banner adicionado. Adicione imagens em formato landscape (16:9)'
+            'Nenhum banner adicionado'
           )
         )}
       </div>
@@ -307,7 +402,7 @@ export default function LayoutManager() {
           </div>
           <div>
             <h2 className="text-xl font-title font-bold text-gray-800">Promoções em Destaque</h2>
-            <p className="text-sm text-gray-500">Cards de ofertas e promoções especiais (formato quadrado)</p>
+            <p className="text-sm text-gray-500">Cards de ofertas e promoções especiais</p>
           </div>
         </div>
         
@@ -326,7 +421,7 @@ export default function LayoutManager() {
         ) : (
           renderEmptyState(
             <Sparkles size={28} className="text-gray-400" />,
-            'Nenhuma promoção adicionada. Use imagens quadradas (1:1) para melhor visualização'
+            'Nenhuma promoção adicionada'
           )
         )}
       </div>
@@ -338,7 +433,7 @@ export default function LayoutManager() {
           </div>
           <div>
             <h2 className="text-xl font-title font-bold text-gray-800">Popups</h2>
-            <p className="text-sm text-gray-500">Modais promocionais exibidos aos visitantes (formato quadrado)</p>
+            <p className="text-sm text-gray-500">Modais promocionais exibidos aos visitantes</p>
           </div>
         </div>
         
@@ -357,8 +452,104 @@ export default function LayoutManager() {
         ) : (
           renderEmptyState(
             <Bell size={28} className="text-gray-400" />,
-            'Nenhum popup adicionado. Popups aparecem automaticamente para os visitantes'
+            'Nenhum popup adicionado'
           )
+        )}
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+            <Users size={20} className="text-green-600" />
+          </div>
+          <div>
+            <h2 className="text-xl font-title font-bold text-gray-800">Logos de Clientes</h2>
+            <p className="text-sm text-gray-500">Logos de empresas parceiras</p>
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          {renderUploadButton(
+            'Adicionar Logos de Clientes',
+            (files) => void handleMultipleUploads(files, 'clients', 'layout/clientes', 'logo'),
+            true,
+            loadingType === 'clients',
+            <Users size={20} className="text-primary" />
+          )}
+        </div>
+        
+        {clients.length > 0 ? (
+          renderImageGrid(clients, 'clients', 'aspect-square')
+        ) : (
+          renderEmptyState(
+            <Users size={28} className="text-gray-400" />,
+            'Nenhum logo de cliente adicionado'
+          )
+        )}
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
+            <Video size={20} className="text-red-600" />
+          </div>
+          <div>
+            <h2 className="text-xl font-title font-bold text-gray-800">Vídeo de Produção</h2>
+            <p className="text-sm text-gray-500">Thumbnail e link do vídeo institucional</p>
+          </div>
+        </div>
+        
+        {video.thumbnailId ? (
+          <div className="space-y-4">
+            <div className="relative inline-block">
+              <div className="w-full max-w-md aspect-video border-2 border-gray-200 rounded-xl overflow-hidden group hover:border-primary transition-colors">
+                <img 
+                  src={optimizeUrl(video.thumbnailId, 'public')} 
+                  alt="Thumbnail do vídeo" 
+                  className="w-full h-full object-cover" 
+                />
+              </div>
+              <button
+                onClick={() => void removeVideo()}
+                className="absolute -top-3 -right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-all transform hover:scale-110"
+                title="Remover vídeo"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2">URL do Vídeo (YouTube, Vimeo, etc.)</label>
+              <input
+                type="url"
+                value={video.videoUrl || ''}
+                onChange={(e) => {
+                  const newVideo = { ...video, videoUrl: e.target.value }
+                  setVideo(newVideo)
+                }}
+                onBlur={() => void saveVideo(video)}
+                placeholder="https://www.youtube.com/embed/..."
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <label className="block">
+              <span className="text-sm font-semibold mb-2 block">Thumbnail do Vídeo</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    const url = prompt('Digite a URL do vídeo (YouTube embed, Vimeo, etc.):')
+                    if (url) void handleVideoUpload(file, url)
+                  }
+                }}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-dark"
+              />
+            </label>
+          </div>
         )}
       </div>
     </div>

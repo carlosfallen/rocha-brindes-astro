@@ -4,7 +4,7 @@ import ProductCard from '../catalog/components/ProductCard'
 import { ArrowRight } from 'lucide-react'
 
 export default function FeaturedProducts() {
-  const { data, isLoading } = useCatalog()
+  const { data, isLoading } = useCatalog(1000)
   const featured = data?.products.filter(p => p.destaque).slice(0, 6) || []
 
   if (isLoading) {
