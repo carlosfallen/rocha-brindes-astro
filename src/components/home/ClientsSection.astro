@@ -1,0 +1,25 @@
+---
+const logos = [
+  "/assets/logos/cliente1.webp",
+  "/assets/logos/cliente2.webp",
+  "/assets/logos/cliente3.webp",
+  "/assets/logos/cliente4.webp",
+  "/assets/logos/cliente5.webp"
+]
+---
+
+<section class="px-4 py-16 bg-gray-50 border-t border-gray-200">
+  <div class="container mx-auto">
+    <h2 class="text-2xl font-semibold text-gray-900 text-center mb-8">
+      Empresas que Confiam em Nós
+    </h2>
+
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-6 items-center justify-center">
+      {logos.map((src) => (
+        <div class="flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity">
+          <img src={src} class="w-28 md:w-32 object-contain" loading="lazy" />
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

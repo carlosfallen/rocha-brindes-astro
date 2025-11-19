@@ -1,0 +1,18 @@
+---
+const { placeholder = "Buscar produtos..." } = Astro.props
+---
+
+<div class="w-full max-w-xl mx-auto">
+  <form action="/produtos" method="GET" class="relative">
+    <input
+      type="text"
+      name="busca"
+      placeholder={placeholder}
+      class="w-full px-4 py-3 pr-12 bg-white border border-gray-200 rounded-xl shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+    />
+
+    <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-primary">
+      🔍
+    </button>
+  </form>
+</div>

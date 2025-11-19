@@ -1,11 +1,164 @@
 ---
-import Layout from '../layouts/Layout.astro'
-import AppWrapper from '../components/AppWrapper'
-import CartPage from '../components/cart/CartPage'
+import Layout from "../layouts/Layout.astro"
+
+// Carrinho será carregado no cliente (localStorage)
+const title = "Seu Orçamento"
 ---
 
-<Layout title="88 Brindes - Carrinho">
-  <AppWrapper client:only="react">
-    <CartPage />
-  </AppWrapper>
+<Layout title={title}>
+  <section class="container mx-auto px-4 py-12" id="cart-root">
+    <h1 class="text-3xl font-title font-bold text-dark mb-10">Seu Orçamento</h1>
+
+    <!-- Carregando -->
+    <div id="cart-loading" class="text-center py-20 text-gray-500 text-lg">
+      Carregando itens do carrinho...
+    </div>
+
+    <!-- Carrinho preenchido -->
+    <div id="cart-content" class="hidden">
+      <div id="cart-items" class="space-y-6"></div>
+
+<div class="mt-10 p-6 bg-white rounded-xl shadow-card border">
+  <h2 class="text-xl font-bold mb-4">Resumo</h2>
+
+  <p class="text-gray-700 mb-3">
+    Total de itens: <span id="total-qty" class="font-semibold"></span>
+  </p>
+
+  <div class="flex flex-col sm:flex-row gap-3">
+    <button
+      id="whatsapp-btn"
+      class="flex-1 bg-primary text-white font-bold py-3 rounded-xl hover:opacity-90 transition"
+    >
+      Enviar Pedido pelo WhatsApp
+    </button>
+
+    <a
+      href="/checkout"
+      class="flex-1 inline-flex items-center justify-center border border-primary text-primary font-bold py-3 rounded-xl hover:bg-primary/5 transition"
+    >
+      Finalizar Orçamento
+    </a>
+  </div>
+</div>
+
+    </div>
+
+    <!-- Carrinho vazio -->
+    <div id="cart-empty" class="hidden text-center py-20">
+      <p class="text-xl text-gray-500 mb-6">Seu carrinho está vazio.</p>
+      <a href="/produtos" class="inline-block px-6 py-3 bg-primary text-white rounded-lg font-semibold">
+        Ver produtos
+      </a>
+    </div>
+  </section>
+
+<script is:raw>
+  async function loadCart() {
+    const loading = document.getElementById("cart-loading")
+    const content = document.getElementById("cart-content")
+    const empty = document.getElementById("cart-empty")
+    const itemsRoot = document.getElementById("cart-items")
+    const totalQtyEl = document.getElementById("total-qty")
+
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]")
+
+    if (cart.length === 0) {
+      loading.classList.add("hidden")
+      empty.classList.remove("hidden")
+      return
+    }
+
+    // Buscar detalhes dos produtos via API
+    const res = await fetch("/api/cart/info", {
+      method: "POST",
+      body: JSON.stringify(cart),
+      headers: { "Content-Type": "application/json" }
+    })
+
+    const data = await res.json()
+
+    loading.classList.add("hidden")
+    content.classList.remove("hidden")
+
+    let totalQty = 0
+    itemsRoot.innerHTML = ""
+
+    data.items.forEach(item => {
+      totalQty += item.qty
+
+      const el = document.createElement("div")
+      el.className = "p-4 bg-white rounded-xl shadow-card border flex gap-6"
+
+      el.innerHTML = `
+        <img src="${item.thumb_url || item.imagem_url}" class="w-24 h-24 object-cover rounded-lg" />
+
+        <div class="flex-1">
+          <h3 class="text-lg font-bold">${item.nome}</h3>
+          <p class="text-sm text-gray-500">SKU: ${item.id}</p>
+          ${item.cor ? `<p class="text-sm mt-1">Cor: <strong>${item.cor}</strong></p>` : ""}
+          
+          <div class="mt-4 flex items-center gap-3">
+            <button class="qtyminus px-3 py-1 bg-gray-100 rounded" data-id="${item.id}" data-cor="${item.cor}">-</button>
+            <span class="font-semibold">${item.qty}</span>
+            <button class="qtyplus px-3 py-1 bg-gray-100 rounded" data-id="${item.id}" data-cor="${item.cor}">+</button>
+
+            <button class="remove ml-auto text-red-500 text-sm font-semibold" data-id="${item.id}" data-cor="${item.cor}">
+              Remover
+            </button>
+          </div>
+        </div>
+      `
+
+      itemsRoot.appendChild(el)
+    })
+
+    totalQtyEl.textContent = totalQty
+
+    // Eventos: aumentar, diminuir, remover
+    document.querySelectorAll(".qtyplus").forEach(btn => {
+      btn.onclick = () => updateQty(btn.dataset.id, btn.dataset.cor, +1)
+    })
+    document.querySelectorAll(".qtyminus").forEach(btn => {
+      btn.onclick = () => updateQty(btn.dataset.id, btn.dataset.cor, -1)
+    })
+    document.querySelectorAll(".remove").forEach(btn => {
+      btn.onclick = () => removeItem(btn.dataset.id, btn.dataset.cor)
+    })
+
+    // WhatsApp
+    document.getElementById("whatsapp-btn").onclick = () => sendToWhatsApp(data.items)
+  }
+
+  function updateQty(id, cor, delta) {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]")
+
+    const item = cart.find(p => p.id === id && p.cor === cor)
+    if (!item) return
+
+    item.qty = Math.max(1, item.qty + delta)
+    localStorage.setItem("cart", JSON.stringify(cart))
+    location.reload()
+  }
+
+  function removeItem(id, cor) {
+    let cart = JSON.parse(localStorage.getItem("cart") || "[]")
+    cart = cart.filter(p => !(p.id === id && p.cor === cor))
+    localStorage.setItem("cart", JSON.stringify(cart))
+    location.reload()
+  }
+
+  function sendToWhatsApp(items) {
+    const text = items.map(item =>
+      `• *${item.nome}* (SKU: ${item.id})\n  Quantidade: ${item.qty}\n  Cor: ${item.cor || "-"}`
+    ).join("\n\n")
+
+    const phone = "5599999999999" // <-- Substitua pelo seu número
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`
+    window.open(url)
+  }
+
+  loadCart()
+</script>
+
 </Layout>

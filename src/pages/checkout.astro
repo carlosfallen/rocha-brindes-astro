@@ -1,0 +1,230 @@
+---
+import Layout from "../layouts/Layout.astro"
+
+const title = "Finalizar Orçamento"
+---
+
+<Layout title={title}>
+  <section class="container mx-auto px-4 py-12" id="checkout-root">
+    <h1 class="text-3xl font-title font-bold text-dark mb-2">
+      Finalizar Orçamento
+    </h1>
+    <p class="text-gray-600 mb-8">
+      Preencha seus dados para enviarmos seu pedido com os produtos selecionados.
+    </p>
+
+    <div class="grid lg:grid-cols-[2fr_3fr] gap-10">
+      <!-- Dados do cliente -->
+      <div class="bg-white rounded-2xl shadow-card border p-6">
+        <h2 class="text-xl font-bold mb-4">Seus dados</h2>
+
+        <form id="checkout-form" class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">
+              Nome completo
+            </label>
+            <input
+              type="text"
+              name="name"
+              required
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Seu nome"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">
+              Empresa (opcional)
+            </label>
+            <input
+              type="text"
+              name="company"
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Nome da empresa"
+            />
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">
+                E-mail
+              </label>
+              <input
+                type="email"
+                name="email"
+                required
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="seu@email.com"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">
+                WhatsApp
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                required
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="(00) 00000-0000"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">
+              Observações adicionais
+            </label>
+            <textarea
+              name="notes"
+              rows={4}
+              class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Fale sobre quantidade por cor, prazos, personalização, etc."
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            class="w-full mt-4 bg-primary text-white font-bold py-3 rounded-xl hover:opacity-90 transition"
+          >
+            Enviar pedido pelo WhatsApp
+          </button>
+        </form>
+      </div>
+
+      <!-- Resumo do pedido -->
+      <div class="bg-white rounded-2xl shadow-card border p-6">
+        <h2 class="text-xl font-bold mb-4">Resumo do Pedido</h2>
+
+        <div id="summary-loading" class="text-gray-500 py-10 text-center">
+          Carregando produtos do carrinho...
+        </div>
+
+        <div id="summary-empty" class="hidden text-center py-10">
+          <p class="text-gray-500 mb-4">
+            Não há itens no seu carrinho.
+          </p>
+          <a
+            href="/produtos"
+            class="inline-flex items-center justify-center px-6 py-3 bg-primary text-white rounded-xl font-semibold"
+          >
+            Ver produtos
+          </a>
+        </div>
+
+        <div id="summary-content" class="hidden">
+          <div id="summary-items" class="space-y-4 mb-6"></div>
+
+          <p class="text-gray-700">
+            Total de itens: <span id="summary-total-qty" class="font-semibold"></span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script is:raw>
+    async function loadSummary() {
+      const loading = document.getElementById("summary-loading")
+      const empty = document.getElementById("summary-empty")
+      const content = document.getElementById("summary-content")
+      const itemsRoot = document.getElementById("summary-items")
+      const totalQtyEl = document.getElementById("summary-total-qty")
+
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]")
+
+      if (!cart.length) {
+        loading.classList.add("hidden")
+        empty.classList.remove("hidden")
+        return
+      }
+
+      const res = await fetch("/api/cart/info", {
+        method: "POST",
+        body: JSON.stringify(cart),
+        headers: { "Content-Type": "application/json" }
+      })
+
+      const data = await res.json()
+
+      loading.classList.add("hidden")
+      content.classList.remove("hidden")
+
+      let totalQty = 0
+      itemsRoot.innerHTML = ""
+
+      data.items.forEach(item => {
+        totalQty += item.qty
+
+        const el = document.createElement("div")
+        el.className = "flex gap-4"
+
+        el.innerHTML = `
+          <img src="${item.thumb_url || item.imagem_url}" class="w-16 h-16 object-cover rounded-lg border" />
+          <div>
+            <p class="text-sm font-semibold text-dark">${item.nome}</p>
+            <p class="text-xs text-gray-500">SKU: ${item.id}</p>
+            <p class="text-xs text-gray-500">
+              Quantidade: <strong>${item.qty}</strong>${item.cor ? " • Cor: <strong>" + item.cor + "</strong>" : ""}
+            </p>
+          </div>
+        `
+
+        itemsRoot.appendChild(el)
+      })
+
+      totalQtyEl.textContent = totalQty
+
+      // salvar na window para uso no submit
+      window.__CHECKOUT_ITEMS__ = data.items
+    }
+
+    function setupForm() {
+      const form = document.getElementById("checkout-form")
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault()
+
+        const fd = new FormData(form)
+        const name = fd.get("name")
+        const company = fd.get("company")
+        const email = fd.get("email")
+        const phone = fd.get("phone")
+        const notes = fd.get("notes")
+
+        const items = window.__CHECKOUT_ITEMS__ || []
+
+        if (!items.length) {
+          alert("Seu carrinho está vazio.")
+          return
+        }
+
+        const intro = [
+          `*Novo pedido de orçamento*`,
+          ``,
+          `*Nome:* ${name}`,
+          company ? `*Empresa:* ${company}` : null,
+          `*E-mail:* ${email}`,
+          `*WhatsApp:* ${phone}`,
+        ].filter(Boolean).join("\n")
+
+        const productsText = items.map(item =>
+          `• *${item.nome}* (SKU: ${item.id})\n  Quantidade: ${item.qty}\n  Cor: ${item.cor || "-"}`
+        ).join("\n\n")
+
+        const notesText = notes ? `\n\n*Observações:*\n${notes}` : ""
+
+        const message = `${intro}\n\n*Produtos:*\n\n${productsText}${notesText}`
+
+        const phoneDest = "5599999999999" // coloque aqui o número de destino
+        const url = \`https://wa.me/\${phoneDest}?text=\${encodeURIComponent(message)}\`
+
+        window.open(url, "_blank")
+      })
+    }
+
+    loadSummary()
+    setupForm()
+  </script>
+</Layout>

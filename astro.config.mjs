@@ -1,7 +1,8 @@
-// FILE: astro.config.mjs
+// astro.config.mjs
 import { defineConfig } from 'astro/config'
 import react from '@astrojs/react'
 import tailwind from '@astrojs/tailwind'
+import { fileURLToPath } from 'node:url'
 
 export default defineConfig({
   integrations: [
@@ -10,11 +11,11 @@ export default defineConfig({
       applyBaseStyles: false,
     })
   ],
-  output: 'hybrid',
+  output: 'static',
   vite: {
     resolve: {
       alias: {
-        '@': '/src'
+        '@': fileURLToPath(new URL('./src', import.meta.url)),
       }
     },
     ssr: {

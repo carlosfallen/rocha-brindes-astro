@@ -1,0 +1,20 @@
+<button 
+  id="open-cart"
+  class="relative flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-dark transition"
+>
+  🛒
+  <span id="cart-count" class="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+    0
+  </span>
+</button>
+
+<script is:raw>
+  function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]")
+    const span = document.getElementById("cart-count")
+    if (span) span.textContent = cart.length
+  }
+
+  updateCartCount()
+  document.addEventListener("cartUpdated", updateCartCount)
+</script>

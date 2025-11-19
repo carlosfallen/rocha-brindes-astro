@@ -1,0 +1,54 @@
+---
+import { optimizeUrl } from "@/shared/utils/image"
+import type { Product } from "../../types/product"
+---
+
+<div id="cart-sidebar" class="fixed top-0 right-0 w-80 h-full bg-white shadow-2xl transform translate-x-full transition-transform z-50">
+  <div class="p-5 border-b font-bold text-lg flex justify-between items-center">
+    Seu Orçamento
+    <button id="close-cart" class="text-gray-500 hover:text-primary">✖</button>
+  </div>
+
+  <div id="cart-items" class="p-4 flex flex-col gap-4 text-sm">
+    <!-- preenchido via JS -->
+  </div>
+
+  <div class="p-5 border-t">
+    <a href="/carrinho" class="block text-center bg-primary text-white py-3 rounded-xl font-bold hover:bg-primary-dark">
+      Finalizar Orçamento
+    </a>
+  </div>
+</div>
+
+<script is:raw>
+  const sidebar = document.getElementById("cart-sidebar")
+
+  document.getElementById("open-cart")?.addEventListener("click", () => {
+    sidebar.style.transform = "translateX(0)"
+  })
+
+  document.getElementById("close-cart")?.addEventListener("click", () => {
+    sidebar.style.transform = "translateX(100%)"
+  })
+
+  function renderCart() {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]")
+    const wrapper = document.getElementById("cart-items")
+    wrapper.innerHTML = ""
+
+    cart.forEach(item => {
+      wrapper.innerHTML += `
+        <div class="flex gap-3 items-center border-b pb-3">
+          <div class="bg-gray-100 w-14 h-14 rounded-lg"></div>
+          <div class="flex-1">
+            <p class="font-bold">${item.id}</p>
+            <p class="text-xs text-gray-500">Qtd: ${item.qty}</p>
+          </div>
+        </div>
+      `
+    })
+  }
+
+  renderCart()
+  document.addEventListener("cartUpdated", renderCart)
+</script>

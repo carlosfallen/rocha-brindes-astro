@@ -1,0 +1,218 @@
+---
+import ProductCard from "./ProductCard.astro"
+import type { Product } from "../../types/product"
+
+// Busca produtos no Cloudflare KV
+const rawProducts = await import.meta.env.KV_PRODUCTS_ALL?.get("products_all", "json") as Product[] | null
+const products: Product[] = rawProducts ?? []
+
+// Busca categorias no KV (opcional)
+const rawCategories = await import.meta.env.KV_CATEGORIES?.get("categories", "json") as { id: string; nome: string }[] | null
+
+// Se não tiver categorias no KV, gera a partir dos próprios produtos
+const categoryNames = rawCategories?.map(c => c.nome) ?? Array.from(
+  new Set(
+    products.flatMap(p => p.categorias || [])
+  )
+)
+
+// Leitura de filtros da URL (opção A — via querystring)
+const url = Astro.url
+const categoryParam = url.searchParams.get("cat") || "Todos"
+const searchParam = (url.searchParams.get("q") || "").toLowerCase()
+const pageParam = Number(url.searchParams.get("page") || "1")
+
+const pageSize = 12
+
+// Filtro
+const filtered = products.filter((p) => {
+  const matchCat =
+    categoryParam === "Todos" ||
+    (p.categorias && p.categorias.includes(categoryParam))
+
+  const nomeLower = p.nome.toLowerCase()
+  const idLower = p.id.toLowerCase()
+
+  const matchSearch =
+    !searchParam ||
+    nomeLower.includes(searchParam) ||
+    idLower.includes(searchParam)
+
+  return matchCat && matchSearch
+})
+
+// Paginação
+const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+const currentPage = Math.min(Math.max(pageParam, 1), totalPages)
+const start = (currentPage - 1) * pageSize
+const paginated = filtered.slice(start, start + pageSize)
+
+// Helpers para montar URLs de navegação
+function buildUrl(params: Record<string, string | number | undefined>) {
+  const u = new URL(url)
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === "") {
+      u.searchParams.delete(key)
+    } else {
+      u.searchParams.set(key, String(value))
+    }
+  })
+  return `${u.pathname}${u.search}`
+}
+---
+
+<div class="container mx-auto px-4 py-8">
+  <!-- Título -->
+  <div class="mb-8">
+    <h1 class="text-3xl md:text-4xl font-title font-bold text-dark mb-2">
+      Nossos Produtos
+    </h1>
+    <p class="text-gray-600">
+      Encontre os melhores brindes personalizados para sua empresa
+    </p>
+  </div>
+
+  <div class="grid lg:grid-cols-[280px_1fr] gap-8">
+    <!-- Sidebar de Categorias + Busca -->
+    <aside class="bg-white rounded-2xl shadow-card p-5 h-fit">
+      <form method="GET" class="space-y-5">
+        <!-- Busca -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            Buscar produto
+          </label>
+          <input
+            type="text"
+            name="q"
+            value={searchParam}
+            placeholder="Nome ou código"
+            class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+
+        <!-- Categorias -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            Categoria
+          </label>
+          <select
+            name="cat"
+            class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="Todos" selected={categoryParam === "Todos"}>
+              Todas
+            </option>
+            {categoryNames.map((cat) => (
+              <option
+                value={cat}
+                selected={categoryParam === cat}
+              >
+                {cat}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <!-- Página (sempre volta para 1 ao aplicar filtro) -->
+        <input type="hidden" name="page" value="1" />
+
+        <button
+          type="submit"
+          class="w-full py-2.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors"
+        >
+          Aplicar filtros
+        </button>
+
+        {searchParam && (
+          <a
+            href={buildUrl({ q: "", page: 1 })}
+            class="block text-center text-xs text-gray-500 hover:text-primary mt-1"
+          >
+            Limpar busca
+          </a>
+        )}
+      </form>
+    </aside>
+
+    <!-- Lista de Produtos -->
+    <section>
+      {filtered.length === 0 ? (
+        <div class="text-center py-20">
+          <p class="text-xl text-gray-500 mb-4">Nenhum produto encontrado</p>
+          {(searchParam || categoryParam !== "Todos") && (
+            <a
+              href={buildUrl({ q: "", cat: "Todos", page: 1 })}
+              class="inline-flex items-center justify-center px-6 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-all text-sm font-semibold"
+            >
+              Limpar filtros
+            </a>
+          )}
+        </div>
+      ) : (
+        <>
+          <div class="mb-4 flex items-center justify-between">
+            <p class="text-sm text-gray-600">
+              Mostrando{" "}
+              <span class="font-semibold">
+                {start + 1}
+              </span>{" "}
+              -{" "}
+              <span class="font-semibold">
+                {Math.min(start + pageSize, filtered.length)}
+              </span>{" "}
+              de{" "}
+              <span class="font-semibold">
+                {filtered.length}
+              </span>{" "}
+              produtos
+            </p>
+          </div>
+
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {paginated.map((product) => (
+              <ProductCard product={product} />
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div class="mt-12 flex items-center justify-center gap-4">
+              <!-- Anterior -->
+              <a
+                href={currentPage > 1
+                  ? buildUrl({ page: currentPage - 1 })
+                  : "#"}
+                aria-disabled={currentPage <= 1}
+                class={`flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-300 rounded-lg text-sm ${
+                  currentPage <= 1
+                    ? "opacity-40 pointer-events-none"
+                    : "hover:bg-gray-50 hover:border-primary transition-all"
+                }`}
+              >
+                ‹ Anterior
+              </a>
+
+              <span class="text-sm text-gray-600 font-medium">
+                Página {currentPage} de {totalPages}
+              </span>
+
+              <!-- Próxima -->
+              <a
+                href={currentPage < totalPages
+                  ? buildUrl({ page: currentPage + 1 })
+                  : "#"}
+                aria-disabled={currentPage >= totalPages}
+                class={`flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-300 rounded-lg text-sm ${
+                  currentPage >= totalPages
+                    ? "opacity-40 pointer-events-none"
+                    : "hover:bg-gray-50 hover:border-primary transition-all"
+                }`}
+              >
+                Próxima ›
+              </a>
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  </div>
+</div>

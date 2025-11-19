@@ -1,15 +1,18 @@
 ---
-import Layout from '../../layouts/Layout.astro'
-import AppWrapper from '../../components/AppWrapper'
-import ProductDetail from '../../components/products/ProductDetail'
+import Layout from "../../layouts/Layout.astro"
+import ProductDetail from "../../components/products/ProductDetail.astro"
 
-export function getStaticPaths() {
-  return []
+// ID vindo da URL
+const id = Astro.params.id!
+
+// Buscar produto individual na KV
+const product = await import.meta.env.KV_PRODUCTS.get(`product:${id}`, "json")
+
+if (!product) {
+  return Astro.redirect("/produtos?erro=produto-nao-encontrado")
 }
 ---
 
-<Layout title="88 Brindes - Detalhes do Produto">
-  <AppWrapper client:only="react">
-    <ProductDetail />
-  </AppWrapper>
+<Layout title={product.nome ?? "Produto"}>
+  <ProductDetail product={product} />
 </Layout>

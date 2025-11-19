@@ -1,0 +1,184 @@
+---
+import { optimizeUrl } from "../../shared/utils/image"
+import type { Product } from "../../types/product"
+
+interface Props {
+  product: Product;
+}
+
+interface GalleryItem {
+  label: string
+  url: string
+  cor: string | null
+}
+
+const { product }: { product: Product } = Astro.props
+
+// Preparar galeria SSR (lista)
+const gallery: GalleryItem[] = []
+
+if (product.imagem_url) {
+  gallery.push({
+    label: "Principal",
+    url: optimizeUrl(product.imagem_url, "public"),
+    cor: null
+  })
+}
+
+if (product.variacoes?.length) {
+  for (const v of product.variacoes) {
+    if (v.imagem_url) {
+      gallery.push({
+        label: v.cor,
+        url: optimizeUrl(v.imagem_url, "public"),
+        cor: v.cor
+      })
+    }
+  }
+}
+---
+
+<section class="container mx-auto px-4 py-8">
+  <!-- Breadcrumb -->
+  <nav class="mb-8 text-sm text-gray-600">
+    <a href="/" class="hover:text-primary">Início</a>
+    <span class="mx-2">/</span>
+    <a href="/produtos" class="hover:text-primary">Produtos</a>
+    <span class="mx-2">/</span>
+    <span class="text-dark font-semibold">{product.nome}</span>
+  </nav>
+
+  <div class="grid md:grid-cols-2 gap-12 mb-16">
+    <!-- Galeria -->
+    <div>
+      <div id="gallery-main" class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl overflow-hidden mb-4 aspect-square flex items-center justify-center">
+        <img id="main-image" src={gallery[0]?.url} alt={product.nome} class="w-full h-full object-contain p-8" />
+      </div>
+
+      {gallery.length > 1 && (
+        <div class="flex gap-2 overflow-x-auto pb-2">
+          {gallery.map((item, idx) => (
+            <button
+              class="thumb-btn flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden"
+              data-index={idx}
+            >
+              <img src={optimizeUrl(item.url, "thumbnail")} alt={item.label} class="w-full h-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <!-- Informações -->
+    <div>
+      <h1 class="text-3xl font-title font-bold text-dark mb-4">{product.nome}</h1>
+      <p class="text-sm text-gray-500 font-mono mb-6">
+        SKU: {product.id}
+      </p>
+
+      {product.categorias?.length > 0 && (
+        <div class="flex flex-wrap gap-2 mb-6">
+          {product.categorias.map(cat => (
+            <span class="px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary">
+              {cat}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {product.descricao && (
+        <div class="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+          <p class="text-sm text-gray-700 whitespace-pre-line">{product.descricao}</p>
+        </div>
+      )}
+
+      <!-- Variações -->
+      {product.variacoes?.length > 0 && (
+        <div class="mb-6">
+          <label class="block text-sm font-bold text-dark mb-3">
+            Escolha a cor <span class="text-red-500">*</span>
+          </label>
+
+          <div class="grid grid-cols-2 gap-2">
+            {product.variacoes.map(v => (
+              <button
+                class="color-btn px-3 py-2.5 rounded-xl bg-white text-gray-700 border-2 border-gray-200 hover:border-primary transition-all"
+                data-color={v.cor}
+              >
+                {v.cor}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- Quantidade -->
+      <div class="mb-6">
+        <label class="block text-sm font-bold text-dark mb-3">Quantidade</label>
+        <div class="flex items-center gap-3">
+          <button id="qty-minus" class="p-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl">-</button>
+          <input id="qty" type="number" min="1" value="1" class="w-20 text-center px-3 py-2.5 bg-gray-50 text-gray-900 text-lg font-bold rounded-xl border-2" />
+          <button id="qty-plus" class="p-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl">+</button>
+        </div>
+      </div>
+
+      <!-- Botão de adicionar -->
+      <button
+        id="add-to-cart"
+        class="w-full bg-primary text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3"
+        data-id={product.id}
+      >
+        Adicionar ao Orçamento
+      </button>
+    </div>
+  </div>
+</section>
+
+<script is:raw>
+  const gallery = JSON.parse(String.raw`{JSON.stringify(gallery)}`)
+  const mainImg = document.getElementById("main-image")
+  const thumbs = document.querySelectorAll(".thumb-btn")
+  const colorBtns = document.querySelectorAll(".color-btn")
+  const qtyInput = document.getElementById("qty")
+
+  let selectedColor = null
+
+  /* Miniaturas */
+  thumbs.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const index = Number(btn.dataset.index)
+      mainImg.src = gallery[index].url
+      selectedColor = gallery[index].cor
+    })
+  })
+
+  /* Variações */
+  colorBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      selectedColor = btn.dataset.color
+      mainImg.src = gallery.find(g => g.cor === selectedColor)?.url || mainImg.src
+    })
+  })
+
+  /* Quantidade */
+  document.getElementById("qty-plus").onclick = () => qtyInput.value = Number(qtyInput.value) + 1
+  document.getElementById("qty-minus").onclick = () => qtyInput.value = Math.max(1, Number(qtyInput.value) - 1)
+
+  /* Add ao carrinho */
+  document.getElementById("add-to-cart").onclick = () => {
+    const id = document.getElementById("add-to-cart").dataset.id
+    const qty = Number(qtyInput.value)
+
+    if (gallery.some(g => g.cor) && !selectedColor) {
+      alert("Selecione uma cor antes de adicionar ao orçamento.")
+      return
+    }
+
+    // LocalStorage (KV será integrado depois)
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]")
+    cart.push({ id, qty, cor: selectedColor })
+    localStorage.setItem("cart", JSON.stringify(cart))
+
+    window.location.href = "/carrinho"
+  }
+</script>

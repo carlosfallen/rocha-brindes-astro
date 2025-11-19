@@ -1,0 +1,48 @@
+---
+import { optimizeUrl, preloadImage } from '@/shared/utils/image'
+import { getCatalog } from '@/core/services/catalog'
+
+const catalog = await getCatalog()
+
+const logoId = catalog?.layout?.logo
+const logoUrl = logoId ? optimizeUrl(logoId, "public") : "/assets/images/logo-rocha-brindes.png"
+---
+
+<header class="sticky top-0 z-40 bg-white shadow-md border-b border-gray-100">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-20">
+
+      <a href="/">
+        <img src={logoUrl} alt="Rocha Brindes" class="h-12 w-auto object-contain" />
+      </a>
+
+      <button
+        id="cart-toggle"
+        class="relative p-3 rounded-full hover:bg-gray-100 transition"
+      >
+        <svg
+          class="w-6 h-6 text-gray-700"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+        >
+          <path d="M3 3h2l.4 2M7 13h10l4-8H5.4" />
+          <circle cx="9" cy="21" r="1" />
+          <circle cx="20" cy="21" r="1" />
+        </svg>
+        <span
+          id="cart-count"
+          class="absolute -top-1 -right-1 bg-primary text-white text-xs font-bold px-2 py-0.5 rounded-full"
+        >
+          0
+        </span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script is:raw>
+  const count = JSON.parse(localStorage.getItem("cart") || "[]").length
+  document.getElementById("cart-count").textContent = count
+</script>

@@ -1,11 +1,24 @@
 ---
-import Layout from '../layouts/Layout.astro'
-import AppWrapper from '../components/AppWrapper'
-import HomePage from '../components/HomePage'
+import Layout from "../layouts/Layout.astro"
+
+// Componentes da Home (que ainda vamos converter para .astro)
+import HeroBanner from "../components/home/HeroBanner.astro"
+import FeaturedProducts from "../components/home/FeaturedProducts.astro"
+import NewProducts from "../components/home/NewProducts.astro"
+import ClientsSection from "../components/home/ClientsSection.astro"
+import NewsletterSection from "../components/home/NewsletterSection.astro"
 ---
 
-<Layout title="88 Brindes - Página Inicial">
-  <AppWrapper client:only="react">
-    <HomePage />
-  </AppWrapper>
+<Layout title="88 Brindes - Catálogo de Brindes Personalizados">
+  <main class="flex flex-col gap-16">
+    <HeroBanner />
+
+    <FeaturedProducts />
+
+    <NewProducts />
+
+    <ClientsSection />
+
+    <NewsletterSection />
+  </main>
 </Layout>

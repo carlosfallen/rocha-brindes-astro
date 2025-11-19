@@ -1,0 +1,36 @@
+---
+import { getCatalog } from "../../core/services/catalog"
+
+import type { Category } from "../../types/product"
+
+// Carrega categorias do backend/Cloudflare (SSR)
+const catalog = await getCatalog()
+const categories: Category[] = catalog?.categories || []
+---
+
+<nav class="bg-white border-b border-gray-200 py-3 shadow-sm">
+  <div class="container mx-auto px-4 flex items-center gap-4 overflow-x-auto no-scrollbar">
+
+    <a 
+      href="/produtos" 
+      class="px-4 py-2 rounded-lg font-semibold text-sm bg-primary text-white whitespace-nowrap hover:bg-primary-dark transition"
+    >
+      Todos
+    </a>
+
+    {categories.map(cat => (
+      <a 
+        href={`/produtos?categoria=${encodeURIComponent(cat.nome)}`}
+        class="px-4 py-2 rounded-lg font-medium text-sm bg-gray-100 text-gray-800 whitespace-nowrap hover:bg-primary hover:text-white transition"
+      >
+        {cat.nome}
+      </a>
+    ))}
+
+  </div>
+</nav>
+
+<style>
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>

@@ -1,0 +1,71 @@
+---
+import { getCatalog } from "../../core/services/catalog"
+const catalog = await getCatalog()
+
+const whatsapp = catalog?.config?.whatsappNumber
+const companyName = catalog?.config?.companyName || "Rocha Brindes"
+const companyEmail = catalog?.config?.companyEmail
+const companyAddress = catalog?.config?.companyAddress
+---
+
+<footer class="bg-gray-900 text-gray-300 py-12 mt-16">
+  <div class="container mx-auto px-4 grid md:grid-cols-3 gap-12">
+
+    <!-- Sobre -->
+    <div>
+      <h3 class="text-white font-bold text-lg mb-4">Sobre nós</h3>
+      <p class="text-sm leading-relaxed">
+        {companyName} é especializada na produção e personalização de brindes corporativos,
+        oferecendo qualidade, agilidade e soluções completas para sua marca.
+      </p>
+    </div>
+
+    <!-- Contato -->
+    <div>
+      <h3 class="text-white font-bold text-lg mb-4">Contato</h3>
+
+      <ul class="space-y-2 text-sm">
+        {whatsapp && (
+          <li>
+            WhatsApp:
+            <a href={`https://wa.me/55${whatsapp}`} target="_blank" class="text-primary hover:underline">
+              {whatsapp}
+            </a>
+          </li>
+        )}
+
+        {companyEmail && (
+          <li>
+            E-mail:
+            <a href={`mailto:${companyEmail}`} class="text-primary hover:underline">
+              {companyEmail}
+            </a>
+          </li>
+        )}
+
+        {companyAddress && (
+          <li>
+            Endereço:
+            <span class="text-gray-400">{companyAddress}</span>
+          </li>
+        )}
+      </ul>
+    </div>
+
+    <!-- Navegação -->
+    <div>
+      <h3 class="text-white font-bold text-lg mb-4">Navegação</h3>
+
+      <ul class="space-y-2 text-sm">
+        <li><a href="/" class="hover:text-primary">Início</a></li>
+        <li><a href="/produtos" class="hover:text-primary">Produtos</a></li>
+        <li><a href="/sobre" class="hover:text-primary">Sobre nós</a></li>
+        <li><a href="/contato" class="hover:text-primary">Contato</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="mt-12 text-center text-xs text-gray-500 border-t border-gray-800 pt-6">
+    © {new Date().getFullYear()} {companyName}. Todos os direitos reservados.
+  </div>
+</footer>
