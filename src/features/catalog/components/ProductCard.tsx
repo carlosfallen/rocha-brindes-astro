@@ -2,25 +2,32 @@
 import { memo } from 'react'
 import { ShoppingCart, Eye } from 'lucide-react'
 import { optimizeUrl } from '../../../shared/utils/image'
+import { useCart } from '../../../core/store/cart'
 import type { Product } from '../../../types/product'
 
 interface Props {
   product: Product
-  onView: () => void
-  onAdd: () => void
+  linkToPage?: boolean
 }
 
-export default memo(function ProductCard({ product, onView, onAdd }: Props) {
-  const imgId = product.thumb_url || product.imagem_url || product.variacoes?.[0]?.thumb_url || product.variacoes?.[0]?.imagem_url
+export default memo(function ProductCard({ product, linkToPage = false }: Props) {
+  const { add } = useCart()
+  const imgId = product.thumb_url || product.imagem_url || product.variacoes?.[0]?.thumb_url
   const imgUrl = imgId ? optimizeUrl(imgId, 'thumbnail') : ''
-  
-  return (
-    <article className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 transform hover:-translate-y-1">
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    add(product)
+  }
+
+  const CardContent = () => (
+    <>
       <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
         {imgUrl ? (
           <img
             src={imgUrl}
-            alt={`Produto ${product.nome}`} 
+            alt={product.nome}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             loading="lazy"
           />
@@ -54,16 +61,42 @@ export default memo(function ProductCard({ product, onView, onAdd }: Props) {
         <p className="text-sm text-gray-500 font-medium mb-4">Código: {product.id}</p>
 
         <div className="flex gap-2">
-          <button 
-            onClick={onView} 
-            className="flex-1 flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-dark font-semibold py-3 px-4 rounded-xl text-sm transition-all duration-200"
-            aria-label={`Ver detalhes de ${product.nome}`}
-          >
-            <Eye size={16} />
-            Detalhes
-          </button>
+          {linkToPage ? (
+            <button
+              onClick={handleAddToCart}
+              className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white font-semibold py-3 px-4 rounded-xl transition-all"
+            >
+              <ShoppingCart size={16} />
+              Adicionar
+            </button>
+          ) : (
+            <button
+              onClick={handleAddToCart}
+              className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white font-semibold py-3 px-4 rounded-xl transition-all"
+            >
+              <ShoppingCart size={16} />
+              Adicionar
+            </button>
+          )}
         </div>
       </div>
+    </>
+  )
+
+  if (linkToPage) {
+    return (
+      <a 
+        href={`/produto/${product.id}`}
+        className="block group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 transform hover:-translate-y-1"
+      >
+        <CardContent />
+      </a>
+    )
+  }
+
+  return (
+    <article className="group bg-white rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 transform hover:-translate-y-1">
+      <CardContent />
     </article>
   )
-}) 
+})

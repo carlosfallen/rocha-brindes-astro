@@ -1,0 +1,31 @@
+commit c718716b328134d2a4741c9e54b24758ba9699ac (HEAD -> versao-an
+tiga)
+Author: carlosfallen <ca88321499@gmail.com>
+Date:   Sun Nov 16 16:33:05 2025 -0300
+
+    final
+
+dist/_astro/Admin.D_ZnKb70.js
+dist/_astro/Admin.De_bwEw7.js
+dist/_astro/AdminDashboard.oBtjjPdz.js
+dist/_astro/CartSidebar.CpBQ8_D_.js
+dist/_astro/CartSidebar.GijOY97R.js
+dist/_astro/CategorySidebar.DDMCbje_.js
+dist/_astro/HeroBanner.8udSLDkh.js
+dist/_astro/Home.BEI_c-fE.js
+dist/_astro/Home.BmLUyVzm.js
+dist/_astro/Home.C5UyI0Vo.js
+dist/_astro/LoginForm.9uVIA5f1.js
+dist/_astro/PopularCategories.DKnqNjlm.js
+dist/_astro/ProductGrid.hmzXJcmi.js
+dist/_astro/ProductModal.BDpuug6S.js
+dist/_astro/Providers.BX01WjE4.js
+dist/_astro/chevron-right.ZnjQOFPe.js
+dist/_astro/plus.BgAYzQn3.js
+dist/_astro/search.C65_GPYA.js
+dist/_astro/trash-2.BCx40-sS.js
+dist/_astro/x.tbJHze9u.js
+dist/admin/index.html
+dist/index.html
+src/features/catalog/components/admin/ConfigManager.tsx
+

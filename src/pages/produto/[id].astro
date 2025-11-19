@@ -1,0 +1,28 @@
+---
+// src/pages/produto/[id].astro
+import Layout from '../../layouts/Layout.astro'
+import ProductDetailPage from '../../features/product/ProductDetailPage'
+import { collection, getDocs } from 'firebase/firestore'
+import { db } from '../../core/lib/firebase'
+
+export async function getStaticPaths() {
+  try {
+    const productsSnap = await getDocs(collection(db, 'produtos'))
+    const paths = productsSnap.docs.map(doc => ({
+      params: { id: doc.id },
+      props: { productId: doc.id }
+    }))
+    
+    return paths
+  } catch (error) {
+    console.error('Erro ao buscar produtos:', error)
+    return []
+  }
+}
+
+const { productId } = Astro.props
+---
+
+<Layout title="Produto - Rocha Brindes">
+  <ProductDetailPage client:only="react" productId={productId} />
+</Layout>
