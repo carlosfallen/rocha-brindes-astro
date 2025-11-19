@@ -1,4 +1,4 @@
-import{c as s}from"./image.CELvQ4Py.js";/**
+import{c as s}from"./phone.BtbWzz4L.js";/**
  * @license lucide-react v0.300.0 - ISC
  *
  * This source code is licensed under the ISC license.

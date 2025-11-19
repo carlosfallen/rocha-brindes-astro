@@ -1,4 +1,4 @@
-import{g as n,d as u,b as m,j as e}from"./Providers.B5GdymyL.js";import{r as a}from"./index.Ba-IbuDT.js";import{c as x,o as h}from"./image.CELvQ4Py.js";/**
+import{g as n,d as u,b as m,j as e}from"./Providers.B5GdymyL.js";import{r as a}from"./index.Ba-IbuDT.js";import{c as x,o as h}from"./phone.BtbWzz4L.js";/**
  * @license lucide-react v0.300.0 - ISC
  *
  * This source code is licensed under the ISC license.

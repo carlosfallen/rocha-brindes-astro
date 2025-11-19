@@ -30,26 +30,9 @@ export default function HeroBanner() {
             className="w-full h-full object-cover"
             loading={i === 0 ? 'eager' : 'lazy'}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
         </div>
       ))}
-
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center text-white px-4">
-          <h1 className="font-title font-bold text-4xl md:text-6xl lg:text-7xl mb-4 drop-shadow-2xl">
-            Brindes Personalizados
-          </h1>
-          <p className="text-lg md:text-xl lg:text-2xl mb-8 drop-shadow-lg">
-            Soluções criativas para sua marca
-          </p>
-          <a 
-            href="/produtos"
-            className="inline-block bg-primary hover:bg-primary-dark text-white font-bold px-8 py-4 rounded-xl shadow-lg transition-all transform hover:scale-105"
-          >
-            Ver Catálogo Completo
-          </a>
-        </div>
-      </div>
 
       {banners.length > 1 && (
         <>

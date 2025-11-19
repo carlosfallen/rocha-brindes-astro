@@ -1,4 +1,4 @@
-import{j as e}from"./Providers.B5GdymyL.js";import{a as o}from"./Layout.BZDz0XiQ.js";import{P as d}from"./ProductCard.CUFPAzlS.js";import{c as l}from"./image.CELvQ4Py.js";import"./index.Ba-IbuDT.js";/**
+import{j as e}from"./Providers.B5GdymyL.js";import{a as o}from"./Layout.bhu3l071.js";import{P as d}from"./ProductCard.DmjdBQN4.js";import{c as l}from"./phone.BtbWzz4L.js";import"./index.Ba-IbuDT.js";/**
  * @license lucide-react v0.300.0 - ISC
  *
  * This source code is licensed under the ISC license.
