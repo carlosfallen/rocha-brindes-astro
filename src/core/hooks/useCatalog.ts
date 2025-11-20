@@ -9,6 +9,11 @@ interface LayoutConfig {
   banners: Array<{ url: string; alt?: string }>
   promotions: string[]
   popups: string[]
+  whatsapp?: string
+  companyInfo?: {
+    title?: string
+    description: string
+  }
 }
 
 interface CatalogData {
@@ -35,7 +40,9 @@ export function useCatalog(productLimit = 6) {
         logo: layoutData.logo || '',
         banners: (layoutData.banners || []).map((id: string) => ({ url: id, alt: 'Banner Rocha Brindes' })),
         promotions: layoutData.promotions || [],
-        popups: layoutData.popups || []
+        popups: layoutData.popups || [],
+        whatsapp: layoutData.whatsapp,
+        companyInfo: layoutData.companyInfo
       }
 
       return { products, categories, layout }

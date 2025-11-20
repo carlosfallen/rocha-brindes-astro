@@ -88,15 +88,14 @@ export default memo(function ProductModal({ product, onClose }: Props) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 flex-1 overflow-hidden">
           {/* Galeria de Imagens */}
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col max-h-[95vh]">
             <div className="flex-1 flex items-center justify-center overflow-hidden">
               {active && (
                 <img
                   src={active.url}
                   alt={`${product.nome} - ${active.label}`}
-                  className="w-full h-full object-contain drop-shadow-xl"
+                  className="w-full h-full object-cover drop-shadow-xl"
                   loading="eager"
-                  style={{ maxHeight: '70vh' }}
                 />
               )}
             </div>

@@ -1,4 +1,4 @@
-// src/components/Home.tsx - Remover padding extra
+// src/components/Home.tsx
 import { useMemo, lazy, Suspense, useState, useEffect } from 'react'
 import { useCatalog, setCachedCatalog } from '../core/hooks/useCatalog'
 import { useCart } from '../core/store/cart'
@@ -6,7 +6,9 @@ import { preloadCriticalImages } from '../shared/utils/image'
 import Header from '../shared/components/Header'
 import Providers from './Providers'
 import type { Product } from '../types/product'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '../core/lib/firebase'
 
 const HeroBanner = lazy(() => import('../shared/components/HeroBanner'))
 const PopularCategories = lazy(() => import('../shared/components/PopularCategories'))
@@ -14,11 +16,13 @@ const CategorySidebar = lazy(() => import('../features/catalog/components/Catego
 const ProductGrid = lazy(() => import('../features/catalog/components/ProductGrid'))
 const ProductModal = lazy(() => import('../features/catalog/components/ProductModal'))
 const CartSidebar = lazy(() => import('../features/cart/CartSidebar'))
+const Footer = lazy(() => import('../shared/components/Footer'))
 
 function HomeContent() {
   const { data, isLoading } = useCatalog(1000)
   const { category, search, add, setCategory, setSearch } = useCart()
   const [selected, setSelected] = useState<Product | null>(null)
+  const [whatsappNumber, setWhatsappNumber] = useState('5589994333316')
   const [page, setPage] = useState(0)
   const pageSize = 6
 
@@ -58,6 +62,36 @@ function HomeContent() {
   const handlePageChange = (newPage: number) => {
     setPage(newPage)
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+    const loadWhatsAppNumber = async () => {
+    try {
+      const docSnap = await getDoc(doc(db, 'config', 'general'))
+      if (docSnap.exists()) {
+        const data = docSnap.data()
+        if (data.whatsappNumber) {
+          setWhatsappNumber(data.whatsappNumber)
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar Contato:', error)
+    }
+  }
+
+    useEffect(() => {
+    void loadWhatsAppNumber()
+  }, [])
+
+  const handleWhatsApp = () => {
+    const cleanNumber = whatsappNumber.replace(/\D/g, '')
+    const message = encodeURIComponent('Olá! Gostaria de mais informações sobre os produtos.')
+    const whatsappUrl = `https://wa.me/${cleanNumber}?text=${message}`
+    
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      window.location.href = whatsappUrl
+    } else {
+      window.open(whatsappUrl, '_blank')
+    }
   }
 
   const skeleton = (
@@ -109,7 +143,7 @@ function HomeContent() {
     }
 
     return (
-      <div className="mt-12 mb-20 lg:mb-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+      <div className="mt-12 mb-8 flex flex-col sm:flex-row items-center justify-center gap-4">
         <div className="flex items-center gap-2">
           <button
             onClick={() => handlePageChange(page - 1)}
@@ -168,6 +202,8 @@ function HomeContent() {
     )
   }
 
+  const categoryInfo = data?.categories.find(c => c.nome === category)
+
   return (
     <>
       <Header />
@@ -177,6 +213,18 @@ function HomeContent() {
             <HeroBanner banners={data?.layout.banners || []} />
           </Suspense>
 
+        {data?.layout.companyInfo && (
+          <section className="mb-12 bg-white rounded-2xl shadow-card p-6 md:p-8">
+            <div className="text-center max-w-4xl mx-auto">
+              <h2 className="text-2xl md:text-3xl font-title font-bold text-dark mb-4">
+                {data.layout.companyInfo.title || 'Sobre Nós'}
+              </h2>
+              <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                {data.layout.companyInfo.description}
+              </p>
+            </div>
+          </section>
+        )}
           <Suspense fallback={null}>
             <PopularCategories categories={data?.categories.filter(c => c.popular).slice(0, 4) || []} onSelect={setCategory} />
           </Suspense>
@@ -193,6 +241,29 @@ function HomeContent() {
             </Suspense>
 
             <div>
+              {categoryInfo && (categoryInfo.descricao || categoryInfo.videoUrl) && (
+                <div className="mb-8 bg-white rounded-2xl shadow-card overflow-hidden">
+                  {categoryInfo.videoUrl && (
+                    <div className="relative w-full aspect-video bg-gray-900">
+                      <video
+                        src={categoryInfo.videoUrl}
+                        className="w-full h-full object-cover"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                      />
+                    </div>
+                  )}
+                  {categoryInfo.descricao && (
+                    <div className="p-6">
+                      <h3 className="text-xl font-title font-bold text-dark mb-3">{category}</h3>
+                      <p className="text-gray-700 leading-relaxed">{categoryInfo.descricao}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {isLoading ? skeleton : filtered.length === 0 ? (
                 <div className="text-center py-20">
                   <p className="text-xl text-gray-500">Nenhum produto encontrado</p>
@@ -227,9 +298,17 @@ function HomeContent() {
         </div>
       </main>
 
+<button
+  onClick={handleWhatsApp}
+  className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-all z-40"
+  aria-label="Contato WhatsApp"
+>
+  <MessageCircle size={28} />
+</button>
       <Suspense fallback={null}>
         {selected && <ProductModal product={selected} onClose={() => setSelected(null)} />}
         <CartSidebar />
+        <Footer />
       </Suspense>
     </>
   )

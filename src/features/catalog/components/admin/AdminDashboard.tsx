@@ -6,7 +6,6 @@ import ProductForm from '../../../../features/catalog/components/admin/ProductFo
 import ProductList from './ProductList'
 import CategoryManager from '../../../../features/catalog/components/admin/CategoryManager'
 import LayoutManager from '../../../../features/catalog/components/admin/LayoutManager'
-import ConfigManager from '../../../../features/catalog/components/admin/ConfigManager'
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'layout' | 'config'>('products')
@@ -83,8 +82,6 @@ export default function AdminDashboard() {
         {activeTab === 'categories' && <CategoryManager />}
 
         {activeTab === 'layout' && <LayoutManager />}
-
-        {activeTab === 'config' && <ConfigManager />}
       </div>
     </div>
   )

@@ -3,13 +3,18 @@ import { useState, useEffect } from 'react'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
 import { uploadToCloudflare, optimizeUrl, deleteCloudflareImage } from '../../../../core/lib/cloudflare'
 import { db } from '../../../../core/lib/firebase'
-import { Upload, X, Loader2, Image as ImageIcon, Sparkles, Bell, LayoutDashboard } from 'lucide-react'
+import { Upload, X, Loader2, Image as ImageIcon, Sparkles, Bell, LayoutDashboard, Info, Phone, Settings } from 'lucide-react'
 
 interface LayoutAssets {
   logo?: string
   banners: string[]
   promotions: string[]
   popups: string[]
+  companyInfo?: {
+    title?: string
+    description: string
+  }
+  whatsapp?: string
 }
 
 type AssetType = 'banners' | 'promotions' | 'popups'
@@ -23,16 +28,24 @@ export default function LayoutManager() {
   const [loading, setLoading] = useState(false)
   const [loadingType, setLoadingType] = useState<'logo' | AssetType | null>(null)
   const [message, setMessage] = useState('')
+  const [companyTitle, setCompanyTitle] = useState('')
+  const [companyDescription, setCompanyDescription] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
 
   useEffect(() => {
     void loadAssets()
+    void loadWhatsAppFromGeneral()
   }, [])
 
   const loadAssets = async () => {
     try {
       const docSnap = await getDoc(doc(db, 'config', 'layout'))
       if (docSnap.exists()) {
-        setAssets(docSnap.data() as LayoutAssets)
+        const data = docSnap.data() as LayoutAssets
+        setAssets(data)
+        setCompanyTitle(data.companyInfo?.title || '')
+        setCompanyDescription(data.companyInfo?.description || '')
+        if (data.whatsapp) setWhatsapp(data.whatsapp)
       }
     } catch (error) {
       console.error('Erro ao carregar assets:', error)
@@ -40,13 +53,56 @@ export default function LayoutManager() {
     }
   }
 
+  const loadWhatsAppFromGeneral = async () => {
+    try {
+      const docSnap = await getDoc(doc(db, 'config', 'general'))
+      if (docSnap.exists()) {
+        const data = docSnap.data()
+        if (data.whatsappNumber && !whatsapp) {
+          setWhatsapp(data.whatsappNumber)
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar WhatsApp:', error)
+    }
+  }
+
   const saveAssets = async (data: LayoutAssets) => {
-    await setDoc(doc(db, 'config', 'layout'), data)
+    await setDoc(doc(db, 'config', 'layout'), data, { merge: true })
+  }
+
+  const saveWhatsAppToGeneral = async (number: string) => {
+    await setDoc(doc(db, 'config', 'general'), { whatsappNumber: number }, { merge: true })
   }
 
   const showMessage = (msg: string, timeout = 3000) => {
     setMessage(msg)
     setTimeout(() => setMessage(''), timeout)
+  }
+
+  const saveCompanyInfo = async () => {
+    try {
+      const newAssets: LayoutAssets = {
+        ...assets,
+        companyInfo: companyDescription ? {
+          title: companyTitle,
+          description: companyDescription
+        } : undefined,
+        whatsapp: whatsapp || undefined
+      }
+      
+      await saveAssets(newAssets)
+      
+      if (whatsapp) {
+        await saveWhatsAppToGeneral(whatsapp)
+      }
+      
+      setAssets(newAssets)
+      showMessage('Informações salvas com sucesso!')
+    } catch (error) {
+      console.error(error)
+      showMessage('Erro ao salvar informações')
+    }
   }
 
   const handleLogoUpload = async (file: File) => {
@@ -230,6 +286,86 @@ export default function LayoutManager() {
         </div>
       )}
 
+      <div className="grid md:grid-cols-2 gap-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+              <Info size={20} className="text-green-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-title font-bold text-gray-800">Sobre a Empresa</h2>
+              <p className="text-sm text-gray-500">Texto exibido na home</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Título (opcional)
+              </label>
+              <input
+                type="text"
+                value={companyTitle}
+                onChange={(e) => setCompanyTitle(e.target.value)}
+                placeholder="Ex: Sobre Nós"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Descrição
+              </label>
+              <textarea
+                value={companyDescription}
+                onChange={(e) => setCompanyDescription(e.target.value)}
+                placeholder="Descreva sua empresa..."
+                rows={4}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors resize-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+              <Settings size={20} className="text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-title font-bold text-gray-800">Configurações Gerais</h2>
+              <p className="text-sm text-gray-500">WhatsApp e outros ajustes</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <Phone size={16} />
+                WhatsApp
+              </label>
+              <input
+                type="text"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+                placeholder="Ex: 5589994333316"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
+              />
+              <p className="text-xs text-gray-500 mt-1">Apenas números com DDI e DDD</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          onClick={() => void saveCompanyInfo()}
+          className="px-8 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+        >
+          Salvar Configurações
+        </button>
+      </div>
+
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -276,7 +412,7 @@ export default function LayoutManager() {
           </div>
           <div>
             <h2 className="text-xl font-title font-bold text-gray-800">Banners Hero</h2>
-            <p className="text-sm text-gray-500">Slides principais da página inicial (formato landscape)</p>
+            <p className="text-sm text-gray-500">Slides principais da página inicial</p>
           </div>
         </div>
         
@@ -295,7 +431,7 @@ export default function LayoutManager() {
         ) : (
           renderEmptyState(
             <LayoutDashboard size={28} className="text-gray-400" />,
-            'Nenhum banner adicionado. Adicione imagens em formato landscape (16:9)'
+            'Nenhum banner adicionado'
           )
         )}
       </div>
@@ -307,7 +443,7 @@ export default function LayoutManager() {
           </div>
           <div>
             <h2 className="text-xl font-title font-bold text-gray-800">Promoções em Destaque</h2>
-            <p className="text-sm text-gray-500">Cards de ofertas e promoções especiais (formato quadrado)</p>
+            <p className="text-sm text-gray-500">Cards de ofertas especiais</p>
           </div>
         </div>
         
@@ -326,7 +462,7 @@ export default function LayoutManager() {
         ) : (
           renderEmptyState(
             <Sparkles size={28} className="text-gray-400" />,
-            'Nenhuma promoção adicionada. Use imagens quadradas (1:1) para melhor visualização'
+            'Nenhuma promoção adicionada'
           )
         )}
       </div>
@@ -338,7 +474,7 @@ export default function LayoutManager() {
           </div>
           <div>
             <h2 className="text-xl font-title font-bold text-gray-800">Popups</h2>
-            <p className="text-sm text-gray-500">Modais promocionais exibidos aos visitantes (formato quadrado)</p>
+            <p className="text-sm text-gray-500">Modais promocionais</p>
           </div>
         </div>
         
@@ -357,7 +493,7 @@ export default function LayoutManager() {
         ) : (
           renderEmptyState(
             <Bell size={28} className="text-gray-400" />,
-            'Nenhum popup adicionado. Popups aparecem automaticamente para os visitantes'
+            'Nenhum popup adicionado'
           )
         )}
       </div>

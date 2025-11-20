@@ -23,7 +23,18 @@ export interface ProductVariation {
 export interface Category {
   id: string
   nome: string
-  productCount: number
-  popular?: boolean
   imagePath?: string
+  popular?: boolean
+  descricao?: string
+  videoUrl?: string
+}
+
+export interface LayoutConfig {
+  logo: string
+  banners: { url: string; alt?: string }[]
+  whatsapp?: string
+  companyInfo?: {
+    title?: string
+    description: string
+  }
 }
