@@ -1,0 +1,1 @@
+const o="iem94FVEkj3Qjv3DsJXpbQ";function i(t,r="public"){if(!t)return console.warn("optimizeUrl: imageId vazio"),"";if(t.startsWith("http://")||t.startsWith("https://")||t.startsWith("blob:")||t.startsWith("data:"))return t;const s=`https://imagedelivery.net/${o}/${t}/${r}`;return console.log("optimizeUrl:",{imageId:t,variant:r,url:s}),s}export{i as o};

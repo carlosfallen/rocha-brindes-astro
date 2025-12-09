@@ -1,0 +1,16 @@
+import{c as e,P as r}from"./Providers.DwJZh4qX.js";import{c as a}from"./createLucideIcon.DozWMnKj.js";import"./index.Ba-IbuDT.js";/**
+ * @license lucide-react v0.300.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const t=a("Check",[["path",{d:"M20 6 9 17l-5-5",key:"1gmf2c"}]]);/**
+ * @license lucide-react v0.300.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const s=a("Home",[["path",{d:"m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",key:"y5dka4"}],["polyline",{points:"9 22 9 12 15 12 15 22",key:"e2us08"}]]);/**
+ * @license lucide-react v0.300.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const i=a("ShoppingBag",[["path",{d:"M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z",key:"hou9p0"}],["path",{d:"M3 6h18",key:"d0wm0j"}],["path",{d:"M16 10a4 4 0 0 1-8 0",key:"1ltviw"}]]);function l(){return e("div",{className:"container mx-auto px-4 py-16",children:e("div",{className:"max-w-2xl mx-auto text-center",children:[e("div",{className:"w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6",children:e(t,{size:48,className:"text-green-600"})}),e("h1",{className:"text-3xl md:text-4xl font-title font-bold text-dark mb-4",children:"Obrigado pelo seu contato!"}),e("p",{className:"text-lg text-gray-600 mb-8",children:"Seu orçamento foi enviado com sucesso para nosso WhatsApp. Nossa equipe entrará em contato em breve com os melhores preços e condições especiais para você."}),e("div",{className:"bg-primary/10 border border-primary/20 rounded-xl p-6 mb-8",children:[e("h2",{className:"font-bold text-dark mb-2",children:"O que acontece agora?"}),e("ul",{className:"text-sm text-gray-700 space-y-2 text-left",children:[e("li",{className:"flex items-start gap-2",children:[e("span",{className:"text-primary mt-1",children:"✓"}),e("span",{children:"Nossa equipe comercial analisará seu pedido"})]}),e("li",{className:"flex items-start gap-2",children:[e("span",{className:"text-primary mt-1",children:"✓"}),e("span",{children:"Você receberá um orçamento personalizado via WhatsApp"})]}),e("li",{className:"flex items-start gap-2",children:[e("span",{className:"text-primary mt-1",children:"✓"}),e("span",{children:"Poderemos discutir detalhes de personalização e prazos"})]}),e("li",{className:"flex items-start gap-2",children:[e("span",{className:"text-primary mt-1",children:"✓"}),e("span",{children:"Faremos o melhor negócio para sua empresa"})]})]})]}),e("div",{className:"flex flex-col sm:flex-row gap-4 justify-center",children:[e("a",{href:"/",className:"inline-flex items-center justify-center gap-2 bg-white border-2 border-gray-300 text-gray-700 font-bold px-6 py-3 rounded-xl hover:bg-gray-50 transition-all",children:[e(s,{size:20}),"Voltar à página inicial"]}),e("a",{href:"/produtos",className:"inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg hover:shadow-xl",children:[e(i,{size:20}),"Continuar comprando"]})]})]})})}function m(){return e(r,{children:e(l,{})})}export{m as default};

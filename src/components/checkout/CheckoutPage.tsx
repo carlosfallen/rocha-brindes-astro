@@ -3,11 +3,10 @@ import { useState, useEffect } from 'react'
 import { useCart } from '../../core/store/cart'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../../core/lib/firebase'
-import Providers from '../Providers'
 import { optimizeUrl } from '../../shared/utils/image'
 import { Send, ArrowLeft } from 'lucide-react'
 
-function CheckoutContent() {
+export default function CheckoutPage() {
   const { items, clear } = useCart()
   const [whatsappNumber, setWhatsappNumber] = useState('5562992485958')
   const [formData, setFormData] = useState({
@@ -209,13 +208,5 @@ function CheckoutContent() {
         </div>
       </div>
     </div>
-  )
-}
-
-export default function CheckoutPage() {
-  return (
-    <Providers>
-      <CheckoutContent />
-    </Providers>
   )
 }
