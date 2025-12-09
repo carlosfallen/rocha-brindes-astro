@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config'
 import react from '@astrojs/react'
 import tailwind from '@astrojs/tailwind'
+import cloudflare from '@astrojs/cloudflare'
 import { fileURLToPath } from 'node:url'
 
 export default defineConfig({
@@ -11,7 +12,10 @@ export default defineConfig({
       applyBaseStyles: false,
     })
   ],
-  output: 'static',
+  output: 'server',
+  adapter: cloudflare({
+    mode: 'directory',
+  }),
   vite: {
     resolve: {
       alias: {

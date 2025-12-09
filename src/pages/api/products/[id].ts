@@ -1,13 +1,6 @@
-import type { APIRoute, GetStaticPaths } from "astro"
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore'
+import type { APIRoute } from "astro"
+import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../../../core/lib/firebase'
-
-export const getStaticPaths: GetStaticPaths = async () => {
-  const snap = await getDocs(collection(db, 'produtos'))
-  return snap.docs.map(d => ({
-    params: { id: d.id }
-  }))
-}
 
 export const GET: APIRoute = async ({ params }) => {
   try {

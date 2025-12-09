@@ -1,18 +1,19 @@
 ---
 import Layout from "../../layouts/Layout.astro"
 import ProductDetail from "../../components/products/ProductDetail.astro"
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore'
+import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../../core/lib/firebase'
 
-export async function getStaticPaths() {
-  const snap = await getDocs(collection(db, 'produtos'))
-  return snap.docs.map(d => ({
-    params: { id: d.id },
-    props: { product: { id: d.id, ...d.data() } }
-  }))
+// Buscar produto dinamicamente
+const id = Astro.params.id!
+const docRef = doc(db, 'produtos', id)
+const docSnap = await getDoc(docRef)
+
+if (!docSnap.exists()) {
+  return Astro.redirect("/produtos?erro=produto-nao-encontrado")
 }
 
-const { product } = Astro.props
+const product = { id: docSnap.id, ...docSnap.data() }
 ---
 
 <Layout title={product.nome ?? "Produto"}>
