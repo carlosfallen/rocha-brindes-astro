@@ -1,11 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro'
-import AppWrapper from '../components/AppWrapper'
-import ThankYouPage from '../components/checkout/ThankYouPage'
+import ThankYouPageWrapper from '../components/checkout/ThankYouPageWrapper'
 ---
 
 <Layout title="88 Brindes - Obrigado">
-  <AppWrapper client:only="react">
-    <ThankYouPage />
-  </AppWrapper>
+  <ThankYouPageWrapper client:only="react" />
 </Layout>

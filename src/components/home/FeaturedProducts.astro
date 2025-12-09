@@ -1,9 +1,9 @@
 ---
-import { useCatalog } from "../../core/hooks/useCatalog"
+import { getCatalog } from "../../core/services/catalog"
 import { optimizeUrl } from "../../shared/utils/image"
 
-const { data } = await useCatalog(6) // buscar 6 produtos em destaque
-const products = data?.products ?? []
+const data = await getCatalog(6) // buscar 6 produtos em destaque
+const products = data.products
 ---
 
 <section class="container mx-auto px-4 py-12">

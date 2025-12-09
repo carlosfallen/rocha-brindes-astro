@@ -1,20 +1,21 @@
 ---
 import ProductCard from "./ProductCard.astro"
 import type { Product } from "../../types/product"
+import { collection, getDocs, query, orderBy } from 'firebase/firestore'
+import { db } from '../../core/lib/firebase'
 
-// Busca produtos no Cloudflare KV
-const rawProducts = await import.meta.env.KV_PRODUCTS_ALL?.get("products_all", "json") as Product[] | null
-const products: Product[] = rawProducts ?? []
+// Busca produtos no Firebase
+const productsSnap = await getDocs(query(collection(db, 'produtos'), orderBy('createdAt', 'desc')))
+const products: Product[] = productsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Product[]
 
-// Busca categorias no KV (opcional)
-const rawCategories = await import.meta.env.KV_CATEGORIES?.get("categories", "json") as { id: string; nome: string }[] | null
+// Busca categorias no Firebase
+const categoriesSnap = await getDocs(query(collection(db, 'categorias'), orderBy('nome')))
+const categories = categoriesSnap.docs.map(d => ({ id: d.id, ...d.data() })) as { id: string; nome: string }[]
 
-// Se não tiver categorias no KV, gera a partir dos próprios produtos
-const categoryNames = rawCategories?.map(c => c.nome) ?? Array.from(
-  new Set(
-    products.flatMap(p => p.categorias || [])
-  )
-)
+// Se não tiver categorias, gera a partir dos próprios produtos
+const categoryNames = categories.length > 0
+  ? categories.map(c => c.nome)
+  : Array.from(new Set(products.flatMap(p => p.categorias || [])))
 
 // Leitura de filtros da URL (opção A — via querystring)
 const url = Astro.url

@@ -134,8 +134,7 @@ if (product.variacoes?.length) {
   </div>
 </section>
 
-<script is:raw>
-  const gallery = JSON.parse(String.raw`{JSON.stringify(gallery)}`)
+<script define:vars={{ gallery }}>
   const mainImg = document.getElementById("main-image")
   const thumbs = document.querySelectorAll(".thumb-btn")
   const colorBtns = document.querySelectorAll(".color-btn")
