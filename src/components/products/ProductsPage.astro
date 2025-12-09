@@ -4,13 +4,22 @@ import type { Product } from "../../types/product"
 import { collection, getDocs, query, orderBy } from 'firebase/firestore'
 import { db } from '../../core/lib/firebase'
 
-// Busca produtos no Firebase
-const productsSnap = await getDocs(query(collection(db, 'produtos'), orderBy('createdAt', 'desc')))
-const products: Product[] = productsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Product[]
+let products: Product[] = []
+let categories: { id: string; nome: string }[] = []
+let errorMessage = null
 
-// Busca categorias no Firebase
-const categoriesSnap = await getDocs(query(collection(db, 'categorias'), orderBy('nome')))
-const categories = categoriesSnap.docs.map(d => ({ id: d.id, ...d.data() })) as { id: string; nome: string }[]
+try {
+  // Busca produtos no Firebase
+  const productsSnap = await getDocs(query(collection(db, 'produtos'), orderBy('createdAt', 'desc')))
+  products = productsSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Product[]
+
+  // Busca categorias no Firebase
+  const categoriesSnap = await getDocs(query(collection(db, 'categorias'), orderBy('nome')))
+  categories = categoriesSnap.docs.map(d => ({ id: d.id, ...d.data() })) as { id: string; nome: string }[]
+} catch (error) {
+  console.error("Error loading products and categories:", error)
+  errorMessage = "Erro ao carregar produtos. Por favor, tente novamente mais tarde."
+}
 
 // Se não tiver categorias, gera a partir dos próprios produtos
 const categoryNames = categories.length > 0
@@ -72,6 +81,13 @@ function buildUrl(params: Record<string, string | number | undefined>) {
       Encontre os melhores brindes personalizados para sua empresa
     </p>
   </div>
+
+  {errorMessage && (
+    <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+      <h2 class="text-xl font-bold text-red-800 mb-2">Erro ao Carregar Produtos</h2>
+      <p class="text-red-600">{errorMessage}</p>
+    </div>
+  )}
 
   <div class="grid lg:grid-cols-[280px_1fr] gap-8">
     <!-- Sidebar de Categorias + Busca -->
