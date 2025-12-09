@@ -2,8 +2,16 @@
 import { getCatalog } from "../../core/services/catalog"
 import { optimizeUrl } from "../../shared/utils/image"
 
-const data = await getCatalog(6) // buscar 6 produtos em destaque
-const products = data.products
+let products = []
+let errorMessage = null
+
+try {
+  const data = await getCatalog(6) // buscar 6 produtos em destaque
+  products = data.products
+} catch (error) {
+  console.error("Error loading featured products:", error)
+  errorMessage = "Não foi possível carregar os produtos em destaque no momento."
+}
 ---
 
 <section class="container mx-auto px-4 py-12">
@@ -11,7 +19,13 @@ const products = data.products
     Produtos em Destaque
   </h2>
 
-  {products.length === 0 && (
+  {errorMessage && (
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+      <p class="text-yellow-800">{errorMessage}</p>
+    </div>
+  )}
+
+  {!errorMessage && products.length === 0 && (
     <p class="text-gray-500">Nenhum produto encontrado.</p>
   )}
 

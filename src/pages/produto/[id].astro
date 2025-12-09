@@ -6,16 +6,41 @@ import { db } from '../../core/lib/firebase'
 
 // Buscar produto dinamicamente
 const id = Astro.params.id!
-const docRef = doc(db, 'produtos', id)
-const docSnap = await getDoc(docRef)
 
-if (!docSnap.exists()) {
-  return Astro.redirect("/produtos?erro=produto-nao-encontrado")
+let product = null
+let errorMessage = null
+
+try {
+  const docRef = doc(db, 'produtos', id)
+  const docSnap = await getDoc(docRef)
+
+  if (!docSnap.exists()) {
+    return Astro.redirect("/produtos?erro=produto-nao-encontrado")
+  }
+
+  product = { id: docSnap.id, ...docSnap.data() }
+} catch (error) {
+  console.error("Error loading product:", error)
+  errorMessage = "Erro ao carregar o produto. Por favor, tente novamente mais tarde."
 }
-
-const product = { id: docSnap.id, ...docSnap.data() }
 ---
 
-<Layout title={product.nome ?? "Produto"}>
-  <ProductDetail product={product} />
+<Layout title={product?.nome ?? "Produto"}>
+  {errorMessage ? (
+    <div class="container mx-auto px-4 py-12">
+      <div class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto">
+        <h2 class="text-xl font-bold text-red-800 mb-2">Erro ao Carregar Produto</h2>
+        <p class="text-red-600">{errorMessage}</p>
+        <a href="/produtos" class="mt-4 inline-block px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+          Voltar para Produtos
+        </a>
+      </div>
+    </div>
+  ) : product ? (
+    <ProductDetail product={product} />
+  ) : (
+    <div class="container mx-auto px-4 py-12">
+      <p class="text-gray-500">Carregando...</p>
+    </div>
+  )}
 </Layout>

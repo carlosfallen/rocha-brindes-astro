@@ -1,8 +1,8 @@
 globalThis.process ??= {}; globalThis.process.env ??= {};
 import { c as createComponent, m as maybeRenderHead, b as addAttribute, a as renderTemplate, r as renderComponent } from '../chunks/astro/server_DMHZTcBm.mjs';
-import { $ as $$Layout } from '../chunks/Layout_DP87oAng.mjs';
+import { $ as $$Layout } from '../chunks/Layout_BiHM0FIQ.mjs';
 import { o as optimizeUrl } from '../chunks/image_BuXG3seY.mjs';
-import { g as getDocs, b as getDoc, q as query, c as collection, d as db, o as orderBy, l as limit, a as doc } from '../chunks/firebase_-vWPoMRi.mjs';
+import { g as getDocs, b as getDoc, q as query, c as collection, d as db, o as orderBy, l as limit, a as doc } from '../chunks/firebase_CF_0dyeA.mjs';
 export { r as renderers } from '../chunks/_@astro-renderers_Cevu3oIO.mjs';
 
 const $$HeroBanner = createComponent(($$result, $$props, $$slots) => {
@@ -58,19 +58,33 @@ async function getCatalog(productLimit = 6) {
 }
 
 const $$FeaturedProducts = createComponent(async ($$result, $$props, $$slots) => {
-  const data = await getCatalog(6);
-  const products = data.products;
+  let products = [];
+  let errorMessage = null;
+  try {
+    const data = await getCatalog(6);
+    products = data.products;
+  } catch (error) {
+    console.error("Error loading featured products:", error);
+    errorMessage = "N\xE3o foi poss\xEDvel carregar os produtos em destaque no momento.";
+  }
   return renderTemplate`${maybeRenderHead()}<section class="container mx-auto px-4 py-12"> <h2 class="text-2xl font-bold mb-6 text-gray-900">
 Produtos em Destaque
-</h2> ${products.length === 0 && renderTemplate`<p class="text-gray-500">Nenhum produto encontrado.</p>`} <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"> ${products.map((product) => renderTemplate`<a${addAttribute(`/produto/${product.id}`, "href")} class="group block"> <div class="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden shadow-sm"> <img${addAttribute(optimizeUrl(product.imagem_url, "public"), "src")}${addAttribute(product.nome, "alt")} class="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy"> </div> <h3 class="mt-2 font-semibold text-gray-800 group-hover:text-orange-500"> ${product.nome} </h3> </a>`)} </div> </section>`;
+</h2> ${errorMessage && renderTemplate`<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4"> <p class="text-yellow-800">${errorMessage}</p> </div>`} ${!errorMessage && products.length === 0 && renderTemplate`<p class="text-gray-500">Nenhum produto encontrado.</p>`} <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"> ${products.map((product) => renderTemplate`<a${addAttribute(`/produto/${product.id}`, "href")} class="group block"> <div class="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden shadow-sm"> <img${addAttribute(optimizeUrl(product.imagem_url, "public"), "src")}${addAttribute(product.nome, "alt")} class="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy"> </div> <h3 class="mt-2 font-semibold text-gray-800 group-hover:text-orange-500"> ${product.nome} </h3> </a>`)} </div> </section>`;
 }, "/home/user/rocha-brindes-astro/src/components/home/FeaturedProducts.astro", void 0);
 
 const $$NewProducts = createComponent(async ($$result, $$props, $$slots) => {
-  const data = await getCatalog(8);
-  const products = data.products;
+  let products = [];
+  let errorMessage = null;
+  try {
+    const data = await getCatalog(8);
+    products = data.products;
+  } catch (error) {
+    console.error("Error loading new products:", error);
+    errorMessage = "N\xE3o foi poss\xEDvel carregar as novidades no momento.";
+  }
   return renderTemplate`${maybeRenderHead()}<section class="container mx-auto px-4 py-12"> <h2 class="text-2xl font-bold mb-6 text-gray-900">
 Novidades
-</h2> ${products.length === 0 && renderTemplate`<p class="text-gray-500">Nenhum produto novo foi encontrado.</p>`} <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"> ${products.map((product) => renderTemplate`<a${addAttribute(`/produto/${product.id}`, "href")} class="group block"> <div class="w-full aspect-square rounded-lg bg-gray-100 overflow-hidden shadow"> <img${addAttribute(optimizeUrl(product.imagem_url, "public"), "src")}${addAttribute(product.nome, "alt")} class="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy"> </div> <h3 class="mt-2 font-semibold text-gray-800 group-hover:text-orange-500"> ${product.nome} </h3> </a>`)} </div> </section>`;
+</h2> ${errorMessage && renderTemplate`<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4"> <p class="text-yellow-800">${errorMessage}</p> </div>`} ${!errorMessage && products.length === 0 && renderTemplate`<p class="text-gray-500">Nenhum produto novo foi encontrado.</p>`} <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"> ${products.map((product) => renderTemplate`<a${addAttribute(`/produto/${product.id}`, "href")} class="group block"> <div class="w-full aspect-square rounded-lg bg-gray-100 overflow-hidden shadow"> <img${addAttribute(optimizeUrl(product.imagem_url, "public"), "src")}${addAttribute(product.nome, "alt")} class="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy"> </div> <h3 class="mt-2 font-semibold text-gray-800 group-hover:text-orange-500"> ${product.nome} </h3> </a>`)} </div> </section>`;
 }, "/home/user/rocha-brindes-astro/src/components/home/NewProducts.astro", void 0);
 
 const $$ClientsSection = createComponent(($$result, $$props, $$slots) => {

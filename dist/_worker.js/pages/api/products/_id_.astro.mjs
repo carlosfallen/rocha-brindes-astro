@@ -1,5 +1,5 @@
 globalThis.process ??= {}; globalThis.process.env ??= {};
-import { a as doc, d as db, b as getDoc } from '../../../chunks/firebase_-vWPoMRi.mjs';
+import { a as doc, d as db, b as getDoc } from '../../../chunks/firebase_CF_0dyeA.mjs';
 export { r as renderers } from '../../../chunks/_@astro-renderers_Cevu3oIO.mjs';
 
 const GET = async ({ params }) => {

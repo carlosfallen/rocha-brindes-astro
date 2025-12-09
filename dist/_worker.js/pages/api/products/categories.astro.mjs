@@ -1,5 +1,5 @@
 globalThis.process ??= {}; globalThis.process.env ??= {};
-import { g as getDocs, q as query, c as collection, d as db, o as orderBy } from '../../../chunks/firebase_-vWPoMRi.mjs';
+import { g as getDocs, q as query, c as collection, d as db, o as orderBy } from '../../../chunks/firebase_CF_0dyeA.mjs';
 export { r as renderers } from '../../../chunks/_@astro-renderers_Cevu3oIO.mjs';
 
 const GET = async () => {

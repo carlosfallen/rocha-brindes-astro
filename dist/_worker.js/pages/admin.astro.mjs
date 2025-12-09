@@ -1,6 +1,6 @@
 globalThis.process ??= {}; globalThis.process.env ??= {};
 import { c as createComponent, r as renderComponent, a as renderTemplate } from '../chunks/astro/server_DMHZTcBm.mjs';
-import { $ as $$Layout } from '../chunks/Layout_DP87oAng.mjs';
+import { $ as $$Layout } from '../chunks/Layout_BiHM0FIQ.mjs';
 export { r as renderers } from '../chunks/_@astro-renderers_Cevu3oIO.mjs';
 
 const $$Admin = createComponent(($$result, $$props, $$slots) => {

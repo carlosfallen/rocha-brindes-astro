@@ -1,8 +1,8 @@
 globalThis.process ??= {}; globalThis.process.env ??= {};
 import { c as createComponent, d as createAstro, m as maybeRenderHead, b as addAttribute, a as renderTemplate, r as renderComponent, F as Fragment } from '../chunks/astro/server_DMHZTcBm.mjs';
-import { $ as $$Layout } from '../chunks/Layout_DP87oAng.mjs';
+import { $ as $$Layout } from '../chunks/Layout_BiHM0FIQ.mjs';
 import { o as optimizeUrl } from '../chunks/image_BuXG3seY.mjs';
-import { g as getDocs, q as query, o as orderBy, c as collection, d as db } from '../chunks/firebase_-vWPoMRi.mjs';
+import { g as getDocs, q as query, c as collection, d as db, o as orderBy } from '../chunks/firebase_CF_0dyeA.mjs';
 export { r as renderers } from '../chunks/_@astro-renderers_Cevu3oIO.mjs';
 
 const $$Astro$1 = createAstro();
@@ -26,10 +26,18 @@ const $$Astro = createAstro();
 const $$ProductsPage = createComponent(async ($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
   Astro2.self = $$ProductsPage;
-  const productsSnap = await getDocs(query(collection(db, "produtos"), orderBy("createdAt", "desc")));
-  const products = productsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-  const categoriesSnap = await getDocs(query(collection(db, "categorias"), orderBy("nome")));
-  const categories = categoriesSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  let products = [];
+  let categories = [];
+  let errorMessage = null;
+  try {
+    const productsSnap = await getDocs(query(collection(db, "produtos"), orderBy("createdAt", "desc")));
+    products = productsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const categoriesSnap = await getDocs(query(collection(db, "categorias"), orderBy("nome")));
+    categories = categoriesSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  } catch (error) {
+    console.error("Error loading products and categories:", error);
+    errorMessage = "Erro ao carregar produtos. Por favor, tente novamente mais tarde.";
+  }
   const categoryNames = categories.length > 0 ? categories.map((c) => c.nome) : Array.from(new Set(products.flatMap((p) => p.categorias || [])));
   const url = Astro2.url;
   const categoryParam = url.searchParams.get("cat") || "Todos";
@@ -62,7 +70,7 @@ const $$ProductsPage = createComponent(async ($$result, $$props, $$slots) => {
 Nossos Produtos
 </h1> <p class="text-gray-600">
 Encontre os melhores brindes personalizados para sua empresa
-</p> </div> <div class="grid lg:grid-cols-[280px_1fr] gap-8"> <!-- Sidebar de Categorias + Busca --> <aside class="bg-white rounded-2xl shadow-card p-5 h-fit"> <form method="GET" class="space-y-5"> <!-- Busca --> <div> <label class="block text-sm font-semibold text-gray-700 mb-2">
+</p> </div> ${errorMessage && renderTemplate`<div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-8"> <h2 class="text-xl font-bold text-red-800 mb-2">Erro ao Carregar Produtos</h2> <p class="text-red-600">${errorMessage}</p> </div>`} <div class="grid lg:grid-cols-[280px_1fr] gap-8"> <!-- Sidebar de Categorias + Busca --> <aside class="bg-white rounded-2xl shadow-card p-5 h-fit"> <form method="GET" class="space-y-5"> <!-- Busca --> <div> <label class="block text-sm font-semibold text-gray-700 mb-2">
 Buscar produto
 </label> <input type="text" name="q"${addAttribute(searchParam, "value")} placeholder="Nome ou código" class="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary"> </div> <!-- Categorias --> <div> <label class="block text-sm font-semibold text-gray-700 mb-2">
 Categoria

@@ -1,5 +1,5 @@
 // src/lib/firebase.ts
-import { initializeApp } from 'firebase/app'
+import { initializeApp, getApps } from 'firebase/app'
 import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
@@ -14,7 +14,14 @@ const firebaseConfig = {
   measurementId: "G-2M3853EFPV"
 };
 
-const app = initializeApp(firebaseConfig)
+// Initialize Firebase only if not already initialized (important for SSR)
+let app
+try {
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+} catch (error) {
+  console.error('Error initializing Firebase:', error)
+  throw new Error('Failed to initialize Firebase. This may be due to Cloudflare Workers compatibility issues.')
+}
 
 export const auth = getAuth(app)
 export const db = getFirestore(app)

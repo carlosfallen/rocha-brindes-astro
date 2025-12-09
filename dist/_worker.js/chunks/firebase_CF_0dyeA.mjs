@@ -2174,6 +2174,13 @@ function getApp(name = DEFAULT_ENTRY_NAME) {
     return app;
 }
 /**
+ * A (read-only) array of all initialized apps.
+ * @public
+ */
+function getApps() {
+    return Array.from(_apps.values());
+}
+/**
  * Registers a library's name and version for platform logging purposes.
  * @param library - Name of 1p or 3p library (e.g. firestore, angularfire)
  * @param version - Current version of that library.
@@ -22910,7 +22917,13 @@ const firebaseConfig = {
   appId: "1:400382511245:web:526a56c3d9ed19ffe2fac4",
   measurementId: "G-2M3853EFPV"
 };
-const app = initializeApp(firebaseConfig);
+let app;
+try {
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+} catch (error) {
+  console.error("Error initializing Firebase:", error);
+  throw new Error("Failed to initialize Firebase. This may be due to Cloudflare Workers compatibility issues.");
+}
 getAuth(app);
 const db = getFirestore(app);
 getStorage(app);

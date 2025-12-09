@@ -1,8 +1,8 @@
 globalThis.process ??= {}; globalThis.process.env ??= {};
 import { c as createComponent, d as createAstro, a as renderTemplate, g as defineScriptVars, b as addAttribute, m as maybeRenderHead, r as renderComponent } from '../../chunks/astro/server_DMHZTcBm.mjs';
-import { $ as $$Layout } from '../../chunks/Layout_DP87oAng.mjs';
+import { $ as $$Layout } from '../../chunks/Layout_BiHM0FIQ.mjs';
 import { o as optimizeUrl } from '../../chunks/image_BuXG3seY.mjs';
-import { a as doc, b as getDoc, d as db } from '../../chunks/firebase_-vWPoMRi.mjs';
+import { a as doc, d as db, b as getDoc } from '../../chunks/firebase_CF_0dyeA.mjs';
 export { r as renderers } from '../../chunks/_@astro-renderers_Cevu3oIO.mjs';
 
 var __freeze = Object.freeze;
@@ -42,13 +42,22 @@ const $$id = createComponent(async ($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
   Astro2.self = $$id;
   const id = Astro2.params.id;
-  const docRef = doc(db, "produtos", id);
-  const docSnap = await getDoc(docRef);
-  if (!docSnap.exists()) {
-    return Astro2.redirect("/produtos?erro=produto-nao-encontrado");
+  let product = null;
+  let errorMessage = null;
+  try {
+    const docRef = doc(db, "produtos", id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+      return Astro2.redirect("/produtos?erro=produto-nao-encontrado");
+    }
+    product = { id: docSnap.id, ...docSnap.data() };
+  } catch (error) {
+    console.error("Error loading product:", error);
+    errorMessage = "Erro ao carregar o produto. Por favor, tente novamente mais tarde.";
   }
-  const product = { id: docSnap.id, ...docSnap.data() };
-  return renderTemplate`${renderComponent($$result, "Layout", $$Layout, { "title": product.nome ?? "Produto" }, { "default": async ($$result2) => renderTemplate` ${renderComponent($$result2, "ProductDetail", $$ProductDetail, { "product": product })} ` })}`;
+  return renderTemplate`${renderComponent($$result, "Layout", $$Layout, { "title": product?.nome ?? "Produto" }, { "default": async ($$result2) => renderTemplate`${errorMessage ? renderTemplate`${maybeRenderHead()}<div class="container mx-auto px-4 py-12"> <div class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto"> <h2 class="text-xl font-bold text-red-800 mb-2">Erro ao Carregar Produto</h2> <p class="text-red-600">${errorMessage}</p> <a href="/produtos" class="mt-4 inline-block px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+Voltar para Produtos
+</a> </div> </div>` : product ? renderTemplate`${renderComponent($$result2, "ProductDetail", $$ProductDetail, { "product": product })}` : renderTemplate`<div class="container mx-auto px-4 py-12"> <p class="text-gray-500">Carregando...</p> </div>`}` })}`;
 }, "/home/user/rocha-brindes-astro/src/pages/produto/[id].astro", void 0);
 
 const $$file = "/home/user/rocha-brindes-astro/src/pages/produto/[id].astro";
